@@ -1,0 +1,18 @@
+# This is a service that compute the jacobian of the robot for a given move_it group. 
+#
+# The group is defined by its name. 
+# The jacobian can be calculated for a given link. If not specified it is assume to be the end-effector.
+# The joint state is used to calculate the jacobian for specific joint values.
+# The jacobian can also be computed at a specific reference point wrt to the link frame. If not specified
+# it is assumed to be (0,0,0)
+#
+# The service returns the jacobian as a 6Xnb_joints matrix. As ROS does not supports 2-D array indexing
+# it is stored as a 1-D array. The nb_joints variable is then use to retrieve data in the correct order.
+
+string group_name
+string link_name
+sensor_msgs/JointState joint_state
+geometry_msgs/Point reference_point
+---
+int8 nb_joints
+float64[] jacobian

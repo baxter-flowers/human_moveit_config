@@ -4,8 +4,12 @@ import xmltodict
 import moveit_commander
 from moveit_msgs.srv import GetPositionFK
 from moveit_msgs.msg import RobotState
+from sensor_msgs.msg import JointState
+from geometry_msgs.msg import Point
 from std_msgs.msg import Header
 import transformations
+import numpy as np
+from human_moveit_config.srv import GetJacobian
 
 
 class HumanModel:
@@ -64,7 +68,12 @@ class HumanModel:
     def move_group_by_joints(self, group_name, joint_values, execute=True):
         self.groups[group_name].set_joint_value_target(joint_values)
         if execute:
+            # get current joints
             self.groups[group_name].go(wait=True)
+            current = self.groups[group_name].get_current_joint_values()
+            dist = np.linalg.norm(np.array(current)-np.array(joint_values))
+            return dist < 0.001
+        return True
 
     def joint_limits_by_group(self, group_name):
         joint_names = self.groups[group_name].get_active_joints()
@@ -82,3 +91,28 @@ class HumanModel:
 
     def get_random_joint_values(self, group_name):
         return self.groups[group_name].get_random_joint_values()
+
+    def jacobian(self, group_name, joint_values, link=None, ref_point=None):
+        def compute_jacobian_srv():
+            print "try to call jacobian server"
+            rospy.wait_for_service('compute_jacobian')
+            print "jacobian server online"
+            try:
+                compute_jac = rospy.ServiceProxy('compute_jacobian', GetJacobian)
+                js = JointState()
+                js.position = joint_values
+                # call the service
+                res = compute_jac(group_name, link, js, ref_point)
+                # reorganize the jacobian
+                jac_array = np.array(res.jacobian).reshape((6, res.nb_joints))
+                return jac_array
+            except rospy.ServiceException, e:
+                print "Service call failed: %s" % e
+
+        # assign values
+        if link is None:
+            link = self.end_effectors[group_name]
+        if ref_point is None:
+            ref_point = Point(x=0, y=0, z=0)
+        # return the jacobian
+        return compute_jacobian_srv()

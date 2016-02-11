@@ -8,9 +8,19 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   geometry_msgs
+  sensor_msgs
   moveit_msgs
   moveit_commander
+  cmake_modules
+  moveit_ros_planning_interface
 )
+
+find_package(Eigen REQUIRED)
+
+# Find boost packages
+find_package( Boost 1.34 COMPONENTS filesystem system serialization REQUIRED)
+link_directories ( ${Boost_LIBRARY_DIRS} )
+include_directories ( ${Boost_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIRS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -51,12 +61,11 @@ catkin_python_setup()
 #   Message2.msg
 # )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   TrajectoryFromReba.srv
-#   RebaPose.srv
-# )
+# Generate services in the 'srv' folder
+add_service_files(
+   FILES
+   GetJacobian.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -64,13 +73,13 @@ catkin_python_setup()
 #   RebaHandOver.action
 # )
 
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-#   geometry_msgs
-#   moveit_msgs
-# )
+# Generate added messages and services with any dependencies listed here
+generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+   geometry_msgs
+   sensor_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -128,6 +137,14 @@ include_directories(
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(reba_optim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+FILE(GLOB SRCFILES ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.cpp ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.hpp)
+add_executable(jacobian_server ${SRCFILES})
+
+target_link_libraries(jacobian_server
+	${catkin_LIBRARIES}
+	${Boost_LIBRARIES}
+)
 
 ## Declare a C++ executable
 # add_executable(reba_optim_node src/reba_optim_node.cpp)
