@@ -4,6 +4,7 @@ import scipy.optimize as opti
 from .human_model import HumanModel
 import transformations
 import math
+import rospy
 
 
 class Criterion:
@@ -31,8 +32,11 @@ class Criterion:
                 euler[2] = 0
             else:
                 euler[0] = math.atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(q[1]**2+q[2]**2))
+                try:
+                    euler[1] = math.asin(2*(q[0]*q[2]-q[3]*q[1]))
+                except ValueError:
+                    euler[1] = math.copysign(math.pi/2, 2*(q[0]*q[2]-q[3]*q[1]))
                 euler[2] = math.atan2(2*(q[0]*q[3]+q[1]*q[2]), 1-2*(q[2]**2+q[3]**2))
-            euler[1] = math.asin(2*(q[0]*q[2]-q[3]*q[1]))
             return euler
         pos = pose[0]
         rot = quaternion_to_euler(pose[1])
@@ -53,7 +57,7 @@ class Criterion:
 
     def pose_distance(self, pose1, pose2):
         def squared_dist(x, y):
-            return np.sum((x-y)**2)
+            return np.linalg.norm(x-y)
         eul1 = self.pose_to_euler(pose1)
         eul2 = self.pose_to_euler(pose2)
         return squared_dist(eul1, eul2)
@@ -71,7 +75,13 @@ class Criterion:
                 if self.desired_poses[links[i]]:
                     # calculate the score
                     C += self.pose_distance(pose[i], self.desired_poses[links[i]])
-        # return the value of the criterion
+
+        # if group_name != 'head':
+        #     # move to the desired head pose
+        #     self.human.move_group_by_joints(group_name, joints)
+        #     print joints
+        #     rospy.sleep(1)
+        # # return the value of the criterion
         return C
 
 
@@ -97,7 +107,7 @@ class Optimizer:
         # get enf_effector name
         eef_name = self.criterion.human.end_effectors[group_name]
         # loop until convenient solution is reached
-        while not solution_reached(group_name, joints, self.criterion.desired_poses[eef_name]):
+        while not solution_reached(group_name, joints, self.criterion.desired_poses[eef_name]) and not rospy.is_shutdown():
             joints = self.criterion.human.get_random_joint_values(group_name)
             res = opti.minimize(self.criterion.evaluate,
                                 joints,
@@ -122,7 +132,12 @@ class Optimizer:
                 if key_poses in links:
                     self.groups_ik[key_group].append(key_poses)
 
-        # call the ik for each groups
+        # call the ik for each groups starting with the head
+        if self.groups_ik['head']:
+            self._calculate_ik_by_group('head', self.groups_ik['head'], tol=0.1)
+            # remove the head not to calculate it again
+            self.groups_ik['head'] = []
+        # calculate the other groups
         for group_names, links in self.groups_ik.iteritems():
             if links:
-                self._calculate_ik_by_group(group_names, links, tol=0.00001)
+                self._calculate_ik_by_group(group_names, links, tol=0.1)
