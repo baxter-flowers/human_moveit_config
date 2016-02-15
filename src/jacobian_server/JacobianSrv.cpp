@@ -24,6 +24,7 @@ bool JacobianSrv::computeJacobian(human_moveit_config::GetJacobian::Request  &re
 	std::vector<double> joint_values = req.joint_state.position;
 	// set the joints values for the group
 	this->kinematic_state->setJointGroupPositions(joint_model_group, joint_values);
+	this->kinematic_state->update();
 	// get the reference point
 	Eigen::Vector3d reference_point_position;
 	reference_point_position[0] = req.reference_point.x;
@@ -35,6 +36,10 @@ bool JacobianSrv::computeJacobian(human_moveit_config::GetJacobian::Request  &re
 		                         this->kinematic_state->getLinkModel(req.link_name),
                                  reference_point_position,
                                  jacobian);
+	
+
+	cout << jacobian << endl;
+	
 	// convert the jacobian to a 1-D array
 	int nb_cols = jacobian.cols();
 	std::vector<double> jacobian_vect(jacobian.rows()*nb_cols, 0);

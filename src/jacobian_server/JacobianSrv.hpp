@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include "human_moveit_config/GetJacobian.h"
+#include <iostream>
 
 using namespace std;
 

@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+from human_moveit_config.optimize_ik import Optimizer
+from human_moveit_config.srv import GetHumanIK
+import rospy
+
+
+def main():
+    rospy.init_node('human_ik_srv')
+    opti = Optimizer()
+    rospy.Service('compute_ik', GetHumanIK, opti.handle_compute_ik)
+    print "Ready to compute IK"
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
