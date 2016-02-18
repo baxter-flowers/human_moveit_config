@@ -13,6 +13,8 @@ string group_name
 string link_name
 sensor_msgs/JointState joint_state
 geometry_msgs/Point reference_point
+bool use_quaternion
 ---
-int8 nb_joints
+int8 nb_rows
+int8 nb_cols
 float64[] jacobian

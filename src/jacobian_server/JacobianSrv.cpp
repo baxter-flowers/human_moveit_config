@@ -35,21 +35,20 @@ bool JacobianSrv::computeJacobian(human_moveit_config::GetJacobian::Request  &re
 	kinematic_state->getJacobian(joint_model_group, 
 		                         this->kinematic_state->getLinkModel(req.link_name),
                                  reference_point_position,
-                                 jacobian);
-	
-
-	cout << jacobian << endl;
-	
+                                 jacobian,
+                                 req.use_quaternion);
 	// convert the jacobian to a 1-D array
 	int nb_cols = jacobian.cols();
-	std::vector<double> jacobian_vect(jacobian.rows()*nb_cols, 0);
+	int nb_rows = jacobian.rows();
+	std::vector<double> jacobian_vect(nb_rows*nb_cols, 0);
 	// fill the jacobian with the values
-	for (size_t i = 0, nRows = jacobian.rows(), nCols = jacobian.cols(); i < nCols; ++i)
-   		for (size_t j = 0; j < nRows; ++j){
-   			jacobian_vect[j*nCols + i] = jacobian(j,i);
+	for (size_t i = 0; i < nb_cols; ++i)
+   		for (size_t j = 0; j < nb_rows; ++j){
+   			jacobian_vect[j*nb_cols + i] = jacobian(j,i);
    		}
    	// send back the result
-   	res.nb_joints = nb_cols;
+   	res.nb_rows = nb_rows;
+   	res.nb_cols = nb_cols;
    	res.jacobian = jacobian_vect;
 
    	ROS_INFO("Jacobian computed and sent");

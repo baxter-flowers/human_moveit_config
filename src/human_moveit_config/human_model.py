@@ -15,6 +15,8 @@ from human_moveit_config.srv import GetHumanIK
 
 class HumanModel(object):
     def __init__(self):
+        self.robot_commander = moveit_commander.RobotCommander()
+        self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=10)
         self.groups = {}
         self.groups['head'] = moveit_commander.MoveGroupCommander('head')
         self.groups['right_arm'] = moveit_commander.MoveGroupCommander('right_arm')
@@ -79,16 +81,16 @@ class HumanModel(object):
             pose_list.append(transformations.pose_to_list(pose_stamped.pose))
         return pose_list
 
-    def inverse_kinematic(self, group_name, desired_poses, tolerance=0.1, fill=False, links=None):
+    def inverse_kinematic(self, group_name, desired_poses, tolerance=0.1, continuity=False, fill=False, links=None):
         def compute_ik_client():
-            rospy.wait_for_service('compute_ik')
+            rospy.wait_for_service('compute_human_ik')
             try:
-                compute_ik = rospy.ServiceProxy('compute_ik', GetHumanIK)
+                compute_ik = rospy.ServiceProxy('compute_human_ik', GetHumanIK)
                 # convert the desired poses to geometry_msgs
                 poses = []
                 for pose in desired_poses:
                     poses.append(transformations.list_to_pose(pose).pose)
-                res = compute_ik(group_name, links, poses, active_joints, tolerance)
+                res = compute_ik(group_name, links, poses, active_joints, tolerance, continuity)
                 return list(res.joint_state.position)
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
@@ -102,8 +104,19 @@ class HumanModel(object):
             active_joints = self.get_joint_by_links(group_name, links, fill)
         return compute_ik_client()
 
-    def get_joint_values(self, group_name):
-        return self.groups[group_name].get_current_joint_values()
+    def get_joint_values(self, group_name, joint_names=None):
+        if joint_names is None or not joint_names:
+            return self.groups[group_name].get_current_joint_values()
+        else:
+            joint_values = self.groups[group_name].get_current_joint_values()
+            res = []
+            # get names of active joints
+            active_joints = self.groups[group_name].get_active_joints()
+            for i in range(len(joint_names)):
+                index = active_joints.index(joint_names[i])
+                # replace the current value with the random value
+                res.append(joint_values[index])
+            return res
 
     def set_joint_values(self, group_name, joint_values, joint_names):
         current_values = self.get_joint_values(group_name)
@@ -115,6 +128,47 @@ class HumanModel(object):
             current_values[index] = joint_values[i]
         # return the modified vector
         return current_values
+
+    def get_joint_index(self, group_name, joint_names):
+        indexes = []
+        active_joints = self.groups[group_name].get_active_joints()
+        for name in joint_names:
+            indexes.append(active_joints.index(name))
+        return indexes
+
+    def get_current_state(self):
+        return self.robot_commander.get_current_state()
+
+    def send_state(self, joint_state):
+        # publish till it has not move
+        current = self.get_current_state().joint_state.position
+        dist = np.linalg.norm(np.array(current)-np.array(joint_state.position))
+        # publish the joint_state
+        while dist > 0.01 and not rospy.is_shutdown():
+            self.joint_publisher.publish(joint_state)
+            current = self.get_current_state().joint_state.position
+            dist = np.linalg.norm(np.array(current)-np.array(joint_state.position))
+
+    def send_joint_values(self, group_name, joint_values):
+        # get the current state
+        rs = self.robot_commander.get_current_state()
+        js = rs.joint_state
+        # get the joint names of the group
+        joint_names = self.groups[group_name].get_active_joints()
+        # replace the joint values in the joint state
+        position = list(js.position)
+        for i in range(len(joint_values)):
+            index = js.name.index(joint_names[i])
+            position[index] = joint_values[i]
+        js.position = position
+        # publish till it has not move
+        current = self.groups[group_name].get_current_joint_values()
+        dist = np.linalg.norm(np.array(current)-np.array(joint_values))
+        # publish the joint_state
+        while dist > 0.01 and not rospy.is_shutdown():
+            self.joint_publisher.publish(js)
+            current = self.groups[group_name].get_current_joint_values()
+            dist = np.linalg.norm(np.array(current)-np.array(joint_values))
 
     def get_joint_by_links(self, group_name, links, fill=True):
         joints = []
@@ -133,15 +187,10 @@ class HumanModel(object):
         seen_add = seen.add
         return [x for x in joints if not (x in seen or seen_add(x))]
 
-    def move_group_by_joints(self, group_name, joint_values, execute=True):
-        self.groups[group_name].set_joint_value_target(joint_values)
-        if execute:
-            # get current joints
-            self.groups[group_name].go(wait=True)
-            current = self.groups[group_name].get_current_joint_values()
-            dist = np.linalg.norm(np.array(current)-np.array(joint_values))
-            return dist < 0.001
-        return True
+    def move_group_by_joints(self, group_name, joint_values):
+        self.send_joint_values(group_name, joint_values)
+        # sleep to wait for the message to be send back
+        rospy.sleep(0.01)
 
     def joint_limits_by_group(self, group_name, joint_names=None):
         if joint_names is None or not joint_names:
@@ -173,7 +222,7 @@ class HumanModel(object):
                 res.append(random_joints[index])
             return res
 
-    def jacobian(self, group_name, joint_values, link=None, ref_point=None):
+    def jacobian(self, group_name, joint_values, use_quaternion=False, link=None, ref_point=None):
         def compute_jacobian_srv():
             rospy.wait_for_service('compute_jacobian')
             try:
@@ -182,9 +231,9 @@ class HumanModel(object):
                 js.position = joint_values
                 p = Point(x=ref_point[0], y=ref_point[1], z=ref_point[2])
                 # call the service
-                res = compute_jac(group_name, link, js, p)
+                res = compute_jac(group_name, link, js, p, use_quaternion)
                 # reorganize the jacobian
-                jac_array = np.array(res.jacobian).reshape((6, res.nb_joints))
+                jac_array = np.array(res.jacobian).reshape((res.nb_rows, res.nb_cols))
                 return jac_array
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e

@@ -13,5 +13,6 @@ string[] links
 geometry_msgs/Pose[] desired_poses
 string[] active_joints
 float32 tolerance
+bool continuity
 ---
 sensor_msgs/JointState joint_state 

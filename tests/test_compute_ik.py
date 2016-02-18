@@ -2,7 +2,6 @@
 import unittest
 import rospy
 import time
-import numpy as np
 from human_moveit_config.human_model import HumanModel
 
 
@@ -11,44 +10,42 @@ class TestTransformation(unittest.TestCase):
         rospy.init_node('test_compute_ik')
         human = HumanModel()
 
-        start_head_joints = np.zeros(6).tolist()
+        start_head_joints = [0., 0., 0., 0., 0., 0.]
         sides = ['right', 'left']
-        start_arm_joints = np.zeros((2, 7)).tolist()
+        start_arm_joints = [0., 0., 0., 0., 0., 0., 0.]
 
         # move back to initial pose
         human.move_group_by_joints('head', start_head_joints)
         for j in range(2):
-            human.move_group_by_joints(sides[j]+'_arm', start_arm_joints[j])
+            human.move_group_by_joints(sides[j]+'_arm', start_arm_joints)
 
         start = time.time()
-        for i in range(10):
+        nb_iter = 0
+        while nb_iter < 100 and not rospy.is_shutdown():
             # get random pose
             head_joint_values = human.get_random_joint_values('head')
             # move the torso
-            while not human.move_group_by_joints('head', head_joint_values):
-                # collect new random pose
-                head_joint_values = human.get_random_joint_values('head')
+            human.move_group_by_joints('head', head_joint_values)
 
             # get joint values for the arm
             arm_joint_values = []
             for j in range(2):
                 joints = human.get_random_joint_values(sides[j]+'_arm')
-                while not human.move_group_by_joints(sides[j]+'_arm', joints):
-                    joints = human.get_random_joint_values(sides[j]+'_arm')
+                human.move_group_by_joints(sides[j]+'_arm', joints)
                 arm_joint_values.append(joints)
 
             # move back to initial pose
             human.move_group_by_joints('head', start_head_joints)
             for j in range(2):
-                human.move_group_by_joints(sides[j]+'_arm', start_arm_joints[j])
+                human.move_group_by_joints(sides[j]+'_arm', start_arm_joints)
 
             fk_head = human.forward_kinematic('head', head_joint_values, links=['torso', 'head_tip'])
             # calculate ik for head
-            ik_torso = human.inverse_kinematic('head', [fk_head[0]], links=['torso'])
+            ik_torso = human.inverse_kinematic('head', [fk_head[0]], tolerance=0.001, links=['torso'])
             # move to desired pose
             human.move_group_by_joints('head', ik_torso)
             # calculate head ik
-            ik_head = human.inverse_kinematic('head', [fk_head[1]], links=['head_tip'])
+            ik_head = human.inverse_kinematic('head', [fk_head[1]], tolerance=0.001, links=['head_tip'])
             # move to desired pose
             human.move_group_by_joints('head', ik_head)
 
@@ -57,7 +54,7 @@ class TestTransformation(unittest.TestCase):
                 links = [sides[j]+'_upper_arm', sides[j]+'_forearm', sides[j]+'_hand_tip']
                 fk = human.forward_kinematic(sides[j]+'_arm', arm_joint_values[j], links=links)
                 for k in range(len(fk)):
-                    ik = human.inverse_kinematic(sides[j]+'_arm', [fk[k]], links=[links[k]])
+                    ik = human.inverse_kinematic(sides[j]+'_arm', [fk[k]], tolerance=0.001, links=[links[k]])
                     # move to desired pose
                     human.move_group_by_joints(sides[j]+'_arm', ik)
 
@@ -95,11 +92,12 @@ class TestTransformation(unittest.TestCase):
 
             # move back to initial pose
             human.move_group_by_joints('head', start_head_joints)
-            # for j in range(2):
-            #     human.move_group_by_joints(sides[j]+'_arm', start_arm_joints[j])
+            for j in range(2):
+                human.move_group_by_joints(sides[j]+'_arm', start_arm_joints)
 
-            print 'run number '+str(i)+' passed'
-        print time.time() - start
+            print 'run number '+str(nb_iter)+' passed'
+            nb_iter += 1
+            print "time: "+str(time.time() - start)
 
 if __name__ == '__main__':
     unittest.main()
