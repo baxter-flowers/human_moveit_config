@@ -1,0 +1,123 @@
+#!/usr/bin/env python
+import rospy
+from human_moveit_config.human_model import HumanModel
+import json
+import transformations
+from human_moveit_config.optitrack_calibrator import OptitrackCalibrator
+from baxter_commander.persistence import statetodict
+import rospkg
+
+
+def main():
+    rospy.init_node('optitrack_reader')
+    tol = 0.1
+    human = HumanModel()
+    # import file
+    filename = '/home/buschbapti/Dropbox/baptiste_captures/frames.json'
+    with open(filename) as data_file:
+        data = json.load(data_file)
+
+    record_poses = {}
+    record_poses['/human/hip'] = []
+    record_poses['/human/torso'] = []
+    record_poses['/human/head'] = []
+    record_poses['/human/right_shoulder'] = []
+    record_poses['/human/right_wrist'] = []
+    record_poses['/human/right_hand'] = []
+
+    human_states = {}
+    human_states['states'] = []
+    human_states['times'] = []
+
+    # move to initial pose
+    start_head_joints = [0., 0., 0., 0., 0., 0.]
+    sides = ['right', 'left']
+    start_arm_joints = [0., 0., 0., 0., 0., 0., 0.]
+
+    init_pose = {}
+    frame = data['transforms'][0]
+    # transform all the frames wrt to the hip
+    base = transformations.inverse_transform(frame['objects']['/human/hip']['pose'])
+    for object_name, object_dict in frame['objects'].iteritems():
+        # transform the recorded data
+        transformed_pose = transformations.multiply_transform(base, object_dict['pose'])
+        # add it to the list of recorded data
+        init_pose[object_name] = transformed_pose
+
+    # optimize the calibration matrices
+    calibrator = OptitrackCalibrator()
+    y_pose = [init_pose['/human/hip'], init_pose['/human/torso'],
+              init_pose['/human/head'], init_pose['/human/right_shoulder'],
+              init_pose['/human/right_wrist'], init_pose['/human/right_hand']]
+    y_pose_joints = {}
+    y_pose_joints['head'] = start_head_joints
+    y_pose_joints['right_arm'] = start_arm_joints
+    calibration_dict = calibrator.calibrate(y_pose, y_pose_joints)
+
+    # transform the record data with the calibration
+    for frame in data['transforms']:
+        visible = True
+        for object_name, object_dict in frame['objects'].iteritems():
+            visible = visible and object_dict['visible']
+        if visible:
+            # transform all the frames wrt to the hip
+            base = transformations.inverse_transform(frame['objects']['/human/hip']['pose'])
+            base = transformations.multiply_transform(calibration_dict['/human/hip'], base)
+            for object_name, object_dict in frame['objects'].iteritems():
+                # get the transform from optitrack to human reference in the calibration dict
+                opt_to_human = transformations.inverse_transform(calibration_dict[object_name])
+                # transform the recorded data
+                transformed_pose = transformations.multiply_transform(base, object_dict['pose'])
+                transformed_pose = transformations.multiply_transform(transformed_pose, opt_to_human)
+                # add it to the list of recorded data
+                record_poses[object_name].append(transformed_pose)
+        # append the time to the state
+        human_states['times'].append(frame['time'])
+
+    # move back to initial pose
+    human.move_group_by_joints('head', start_head_joints)
+    for j in range(2):
+        human.move_group_by_joints(sides[j]+'_arm', start_arm_joints)
+
+    # loop through all the recorded data
+    iteration = 0
+    # while iteration < 10 and not rospy.is_shutdown():
+    while iteration < len(record_poses['/human/hip']) and not rospy.is_shutdown():
+        # calculate ik for head
+        ik_torso = human.inverse_kinematic('head',
+                                           [record_poses['/human/torso'][iteration]],
+                                           tolerance=tol,
+                                           links=['torso'])
+        # move to desired pose
+        human.move_group_by_joints('head', ik_torso)
+        # calculate head ik
+        ik_head = human.inverse_kinematic('head',
+                                          [record_poses['/human/head'][iteration]],
+                                          tolerance=tol,
+                                          links=['head_tip'])
+        # move to desired pose
+        human.move_group_by_joints('head', ik_head)
+
+        # calculate arm poses and move the arms
+        links = ['right_upper_arm', 'right_forearm', 'right_hand_tip']
+        opt_links = ['right_shoulder', 'right_wrist', 'right_hand']
+        for i in range(len(links)):
+            ik = human.inverse_kinematic('right_arm',
+                                         [record_poses['/human/'+opt_links[i]][iteration]],
+                                         tolerance=tol,
+                                         links=[links[i]])
+            # move to desired pose
+            human.move_group_by_joints('right_arm', ik)
+
+        # record the robot state
+        human_states['states'].append(statetodict(human.get_current_state()))
+        iteration += 1
+        print iteration
+
+    # dump the json file
+    rospack = rospkg.RosPack()
+    with open(rospack.get_path("human_moveit_config")+"/results/test3.json", 'w') as outfile:
+        json.dump(human_states, outfile, indent=4, sort_keys=True)
+
+if __name__ == '__main__':
+    main()
