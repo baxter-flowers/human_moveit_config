@@ -79,6 +79,9 @@ def main():
     for j in range(2):
         human.move_group_by_joints(sides[j]+'_arm', start_arm_joints)
 
+    # put the human in good posture for reba
+    human.send_joint_values('left_arm', [1.57, -0.6], ['left_shoulder_0', 'left_elbow_0'])
+
     # loop through all the recorded data
     iteration = 0
     # while iteration < 10 and not rospy.is_shutdown():
