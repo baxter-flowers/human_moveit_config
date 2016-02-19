@@ -140,21 +140,15 @@ class HumanModel(object):
         return self.robot_commander.get_current_state()
 
     def send_state(self, joint_state):
-        # publish till it has not move
-        current = self.get_current_state().joint_state.position
-        dist = np.linalg.norm(np.array(current)-np.array(joint_state.position))
-        # publish the joint_state
-        while dist > 0.01 and not rospy.is_shutdown():
-            self.joint_publisher.publish(joint_state)
-            current = self.get_current_state().joint_state.position
-            dist = np.linalg.norm(np.array(current)-np.array(joint_state.position))
+        self.joint_publisher.publish(joint_state)
 
-    def send_joint_values(self, group_name, joint_values):
+    def send_joint_values(self, group_name, joint_values, joint_names=None):
         # get the current state
         rs = self.robot_commander.get_current_state()
         js = rs.joint_state
         # get the joint names of the group
-        joint_names = self.groups[group_name].get_active_joints()
+        if joint_names is None:
+            joint_names = self.groups[group_name].get_active_joints()
         # replace the joint values in the joint state
         position = list(js.position)
         for i in range(len(joint_values)):
@@ -162,12 +156,12 @@ class HumanModel(object):
             position[index] = joint_values[i]
         js.position = position
         # publish till it has not move
-        current = self.groups[group_name].get_current_joint_values()
+        current = self.get_joint_values(group_name, joint_names)
         dist = np.linalg.norm(np.array(current)-np.array(joint_values))
         # publish the joint_state
         while dist > 0.01 and not rospy.is_shutdown():
             self.joint_publisher.publish(js)
-            current = self.groups[group_name].get_current_joint_values()
+            current = self.get_joint_values(group_name, joint_names)
             dist = np.linalg.norm(np.array(current)-np.array(joint_values))
 
     def get_joint_by_links(self, group_name, links, fill=True):
