@@ -13,19 +13,17 @@ def main():
     with open(rospack.get_path("human_moveit_config")+"/results/test3.json") as data_file:
         data = json.load(data_file)
     # loop through all the data
-    iteration = 0
+    rate = rospy.Rate(20)
 
     human = HumanModel()
 
     start_time = time.time()
-    while iteration < len(data['times']) and not rospy.is_shutdown():
-        iter_time = time.time()
-        rs = dicttostate(data['states'][iteration])
-        human.send_state(rs.joint_state)
-        diff_time = time.time() - iter_time
-        if diff_time < data['times'][iteration]:
-            rospy.sleep(diff_time)
-        iteration += 1
+    for rs, t in zip(data['states'], data['times']):
+        # iter_time = time.time()
+        human.send_state(dicttostate(rs).joint_state)
+        rate.sleep()
+        if rospy.is_shutdown():
+            break
     print 'total time: '+str(time.time()-start_time)
 
 if __name__ == '__main__':
