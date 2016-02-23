@@ -21,6 +21,8 @@ class HumanModel(object):
         self.groups['head'] = moveit_commander.MoveGroupCommander('head')
         self.groups['right_arm'] = moveit_commander.MoveGroupCommander('right_arm')
         self.groups['left_arm'] = moveit_commander.MoveGroupCommander('left_arm')
+        self.groups['right_leg'] = moveit_commander.MoveGroupCommander('right_leg')
+        self.groups['left_leg'] = moveit_commander.MoveGroupCommander('left_leg')
         # initialize common links per group
         self.group_links = {}
         self.group_links['head'] = ['torso', 'head_tip']
@@ -186,9 +188,7 @@ class HumanModel(object):
         # sleep to wait for the message to be send back
         rospy.sleep(0.01)
 
-    def joint_limits_by_group(self, group_name, joint_names=None):
-        if joint_names is None or not joint_names:
-            joint_names = self.groups[group_name].get_active_joints()
+    def get_joint_limits(self, joint_names):
         xml_urdf = rospy.get_param('robot_description')
         dict_urdf = xmltodict.parse(xml_urdf)
         joints_urdf = []
@@ -196,9 +196,15 @@ class HumanModel(object):
         joints_urdf.append([[float(j['limit']['@lower']), float(j['limit']['@upper'])]
                            for j in dict_urdf['robot']['joint'] if j['@name'] in joint_names])
         # reorder the joints limits
+        limits = [joints_urdf[1][joints_urdf[0].index(name)] for name in joint_names]
+        return limits
+
+    def joint_limits_by_group(self, group_name):
+        joint_names = self.groups[group_name].get_active_joints()
+        joint_limits = self.get_joint_limits(joint_names)
         limits = {}
         limits['joint_names'] = joint_names
-        limits['limits'] = [joints_urdf[1][joints_urdf[0].index(name)] for name in joint_names]
+        limits['limits'] = joint_limits
         return limits
 
     def get_random_joint_values(self, group_name, joint_names=None):
@@ -215,6 +221,18 @@ class HumanModel(object):
                 # replace the current value with the random value
                 res.append(random_joints[index])
             return res
+
+    def get_random_state(self):
+        rs = self.robot_commander.get_current_state()
+        positions = list(rs.joint_state.position)
+        for group_name, group in self.groups.iteritems():
+            joints = group.get_random_joint_values()
+            joint_names = group.get_active_joints()
+            for i in range(len(joints)):
+                index = rs.joint_state.name.index(joint_names[i])
+                positions[index] = joints[i]
+        rs.joint_state.position = positions
+        return rs.joint_state
 
     def jacobian(self, group_name, joint_values, use_quaternion=False, link=None, ref_point=None):
         def compute_jacobian_srv():
