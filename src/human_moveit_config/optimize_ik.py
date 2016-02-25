@@ -161,7 +161,10 @@ class Optimizer:
             self.criterion.desired_poses[req.links[i]] = pose
         # initialize joints
         init_joints = self.criterion.human.get_joint_values(req.group_name, req.active_joints)
-        joint_limits = self.criterion.human.joint_limits_by_group(req.group_name, req.active_joints)['limits']
+        if req.active_joints:
+            joint_limits = self.criterion.human.get_joint_limits(req.active_joints)
+        else:
+            joint_limits = self.criterion.human.joint_limits_by_group(req.group_name)['limits']
         # loop until convenient solution is reached
         iteration = 0
         min_crit = 1000
