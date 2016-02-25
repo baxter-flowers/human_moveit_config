@@ -23,35 +23,71 @@ class HumanModel(object):
         self.groups['left_arm'] = moveit_commander.MoveGroupCommander('left_arm')
         self.groups['right_leg'] = moveit_commander.MoveGroupCommander('right_leg')
         self.groups['left_leg'] = moveit_commander.MoveGroupCommander('left_leg')
-        # initialize common links per group
-        self.group_links = {}
-        self.group_links['head'] = ['torso', 'head_tip']
-        self.group_links['right_arm'] = ['right_upper_arm', 'right_forearm', 'right_hand_tip']
-        self.group_links['left_arm'] = ['left_upper_arm', 'left_forearm', 'left_hand_tip']
         # initialize end-effectors dict
         self.end_effectors = {}
         # fill both dict
         for key, value in self.groups.iteritems():
             self.end_effectors[key] = value.get_end_effector_link()
+        # initialize common links per group
+        self.group_links = {}
+        self.group_links['head'] = ['torso', 'head_tip']
         # fill the disct of active joints by links
         self.joint_by_links = {}
         self.joint_by_links['torso'] = ['spine_0', 'spine_1', 'spine_2']
         self.joint_by_links['head_tip'] = ['neck_0', 'neck_1', 'neck_2']
         sides = ['right', 'left']
         for s in sides:
+            self.group_links[s+'_arm'] = [s+'_upper_arm', s+'_forearm', s+'_hand_tip']
+            self.group_links[s+'_leg'] = [s+'_thigh', s+'_shin', s+'_foot_tip']
+            # arm links
             self.joint_by_links[s+'_upper_arm'] = [s+'_shoulder_0', s+'_shoulder_1', s+'_shoulder_2']
             self.joint_by_links[s+'_forearm'] = [s+'_elbow_0', s+'_elbow_1']
             self.joint_by_links[s+'_hand_tip'] = [s+'_wrist_0', s+'_wrist_1']
+            # leg links
+            self.joint_by_links[s+'_thigh'] = [s+'_hip_0', s+'_hip_1', s+'_hip_2']
+            self.joint_by_links[s+'_shin'] = [s+'_knee']
+            self.joint_by_links[s+'_foot_tip'] = [s+'_ankle_0', s+'_ankle_1']
 
-    def forward_kinematic(self, group_name, joint_values, links=None, joint_names=None):
+    def full_forward_kinematic(self, joint_state):
+        def extract_group_joints(group_name):
+            active = self.groups[group_name].get_active_joints()
+            res = []
+            for joint in active:
+                index = joint_state.name.index(joint)
+                res.append(joint_state.position[index])
+            return res
+
+        def arm_pose_in_hip(torso_pose, hand_pose):
+            return transformations.multiply_transform(torso_pose, hand_pose)
+
+        # initialize end-effector dict
+        end_effectors_pose = {}
+        for key, value in self.end_effectors.iteritems():
+            end_effectors_pose[value] = []
+        # calculate the forward kinematic by group
+        head_joints = extract_group_joints('head')
+        fk_head = self.forward_kinematic('head', head_joints, links=['torso', 'head_tip'])
+        end_effectors_pose['head_tip'] = fk_head[-1]
+        sides = ['right', 'left']
+        for s in sides:
+            # for the arms the specificity is to use torso pose
+            arm_joints = extract_group_joints(s+'_arm')
+            fk_arm = self.forward_kinematic(s+'_arm', arm_joints, base='/torso')
+            end_effectors_pose[s+'_hand_tip'] = arm_pose_in_hip(fk_head[0], fk_arm)
+            # legs pose are calculated normally
+            leg_joints = extract_group_joints(s+'_leg')
+            fk_leg = self.forward_kinematic(s+'_leg', leg_joints)
+            end_effectors_pose[s+'_foot_tip'] = fk_leg
+        return end_effectors_pose
+
+    def forward_kinematic(self, group_name, joint_values, base='/hip', links=None, joint_names=None):
         def compute_fk_client(joints):
             rospy.wait_for_service('compute_fk')
             try:
                 compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
                 header = Header()
                 header.stamp = rospy.Time.now()
-                header.frame_id = '/hip'
-
+                header.frame_id = base
                 rs = RobotState()
                 rs.joint_state.header = header
                 rs.joint_state.name = group.get_active_joints()
@@ -116,7 +152,7 @@ class HumanModel(object):
             active_joints = self.groups[group_name].get_active_joints()
             for i in range(len(joint_names)):
                 index = active_joints.index(joint_names[i])
-                # replace the current value with the random value
+                # get current values of desired joints
                 res.append(joint_values[index])
             return res
 
