@@ -5,12 +5,14 @@ import json
 import rospkg
 from baxter_commander.persistence import dicttostate
 import time
+from sensor_msgs.msg import JointState
 
 
 def main():
+    reba_publisher = rospy.Publisher('reba_assess', JointState, queue_size=1)
     rospy.init_node('optitrack_replay')
     rospack = rospkg.RosPack()
-    with open(rospack.get_path("human_moveit_config")+"/results/test3.json") as data_file:
+    with open(rospack.get_path("human_moveit_config")+"/results/test_new_model.json") as data_file:
         data = json.load(data_file)
     # loop through all the data
     rate = rospy.Rate(20)
@@ -19,8 +21,10 @@ def main():
 
     start_time = time.time()
     for rs, t in zip(data['states'], data['times']):
+        js = dicttostate(rs).joint_state
         # iter_time = time.time()
-        human.send_state(dicttostate(rs).joint_state)
+        human.send_state(js)
+        reba_publisher.publish(js)
         rate.sleep()
         if rospy.is_shutdown():
             break
