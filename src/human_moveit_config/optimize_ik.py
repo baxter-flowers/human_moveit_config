@@ -154,7 +154,6 @@ class Optimizer:
                 bool_reached = bool_reached or abs(sum_dist-previous_value) < 0.001
             return bool_reached, sum_dist
 
-        print 'Received new IK request'
         # set the desired poses in euler
         for i in range(len(req.links)):
             pose = transformations.pose_to_list(req.desired_poses[i])
@@ -187,7 +186,6 @@ class Optimizer:
             joints = res.x.tolist()
             solution_found, crit_value = solution_reached(joints, previous_value)
             # solution_found, crit_value = solution_reached(joints)
-            print crit_value
             if crit_value < min_crit:
                 best_joints = res.x.tolist()
                 min_crit = crit_value
@@ -203,6 +201,5 @@ class Optimizer:
         js.name = self.criterion.human.groups[req.group_name].get_active_joints()
         js.position = joint_result
 
-        print'IK computed and sent back'
         # return server reply
         return GetHumanIKResponse(js)

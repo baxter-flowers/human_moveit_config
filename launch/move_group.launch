@@ -66,4 +66,5 @@
     <param name="planning_scene_monitor/publish_transforms_updates" value="$(arg publish_monitored_planning_scene)" />
   </node>
 
+  <node name="human_ik_srv" pkg="human_moveit_config" type="human_ik_srv"/>
 </launch>
