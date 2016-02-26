@@ -80,7 +80,7 @@ def main():
         human.move_group_by_joints(sides[j]+'_arm', start_arm_joints)
 
     # put the human in good posture for reba
-    human.send_joint_values('left_arm', [1.57, -0.6], ['left_shoulder_0', 'left_elbow_0'])
+    human.send_joint_values(['left_shoulder_0', 'left_elbow_0'], [1.57, -0.6])
 
     # loop through all the recorded data
     iteration = 0
@@ -119,7 +119,7 @@ def main():
 
     # dump the json file
     rospack = rospkg.RosPack()
-    with open(rospack.get_path("human_moveit_config")+"/results/test3.json", 'w') as outfile:
+    with open(rospack.get_path("human_moveit_config")+"/results/test_new_model.json", 'w') as outfile:
         json.dump(human_states, outfile, indent=4, sort_keys=True)
 
 if __name__ == '__main__':

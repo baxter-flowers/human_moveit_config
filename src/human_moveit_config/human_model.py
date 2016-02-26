@@ -16,7 +16,7 @@ from human_moveit_config.srv import GetHumanIK
 class HumanModel(object):
     def __init__(self):
         self.robot_commander = moveit_commander.RobotCommander()
-        self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=10)
+        self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
         self.groups = {}
         self.groups['head'] = moveit_commander.MoveGroupCommander('head')
         self.groups['right_arm'] = moveit_commander.MoveGroupCommander('right_arm')
@@ -180,27 +180,19 @@ class HumanModel(object):
     def send_state(self, joint_state):
         self.joint_publisher.publish(joint_state)
 
-    def send_joint_values(self, group_name, joint_values, joint_names=None):
+    def send_joint_values(self, joint_names, joint_values, wait=True):
         # get the current state
         rs = self.robot_commander.get_current_state()
         js = rs.joint_state
-        # get the joint names of the group
-        if joint_names is None:
-            joint_names = self.groups[group_name].get_active_joints()
         # replace the joint values in the joint state
         position = list(js.position)
         for i in range(len(joint_values)):
             index = js.name.index(joint_names[i])
             position[index] = joint_values[i]
         js.position = position
-        # publish till it has not move
-        current = self.get_joint_values(group_name, joint_names)
-        dist = np.linalg.norm(np.array(current)-np.array(joint_values))
-        # publish the joint_state
-        while dist > 0.01 and not rospy.is_shutdown():
-            self.joint_publisher.publish(js)
-            current = self.get_joint_values(group_name, joint_names)
-            dist = np.linalg.norm(np.array(current)-np.array(joint_values))
+        self.send_state(js)
+        if wait:
+            rospy.sleep(0.1)
 
     def get_joint_by_links(self, group_name, links, fill=True):
         joints = []
@@ -220,11 +212,13 @@ class HumanModel(object):
         return [x for x in joints if not (x in seen or seen_add(x))]
 
     def move_group_by_joints(self, group_name, joint_values):
-        self.send_joint_values(group_name, joint_values)
-        # sleep to wait for the message to be send back
-        rospy.sleep(0.01)
+        joint_names = self.groups[group_name].get_active_joints()
+        self.send_joint_values(joint_names, joint_values, wait=True)
 
-    def get_joint_limits(self, joint_names):
+    def get_joint_limits(self, joint_names=None):
+        if joint_names is None:
+            rs = self.get_current_state()
+            joint_names = rs.joint_state.name
         xml_urdf = rospy.get_param('robot_description')
         dict_urdf = xmltodict.parse(xml_urdf)
         joints_urdf = []
