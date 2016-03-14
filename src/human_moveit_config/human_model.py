@@ -177,8 +177,11 @@ class HumanModel(object):
     def get_current_state(self):
         return self.robot_commander.get_current_state()
 
-    def send_state(self, joint_state):
+    def send_state(self, joint_state, wait=True):
         self.joint_publisher.publish(joint_state)
+        if wait:
+            rospy.sleep(0.1)
+
 
     def send_joint_values(self, joint_names, joint_values, wait=True):
         # get the current state
@@ -190,9 +193,7 @@ class HumanModel(object):
             index = js.name.index(joint_names[i])
             position[index] = joint_values[i]
         js.position = position
-        self.send_state(js)
-        if wait:
-            rospy.sleep(0.1)
+        self.send_state(js, wait)
 
     def get_joint_by_links(self, group_name, links, fill=True):
         joints = []
@@ -251,6 +252,13 @@ class HumanModel(object):
                 # replace the current value with the random value
                 res.append(random_joints[index])
             return res
+
+    def get_joint_names(self, group_name=None):
+        if group_name is None:
+            rs = self.get_current_state()
+            return rs.joint_state.name
+        else:
+            return self.groups[group_name].get_active_joints()
 
     def get_random_state(self):
         rs = self.robot_commander.get_current_state()
