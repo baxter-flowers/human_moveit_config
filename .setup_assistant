@@ -1,0 +1,8 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: kinect_skeleton_publisher
+    relative_path: urdf/people/human.urdf
+  SRDF:
+    relative_path: config/human_model.srdf
+  CONFIG:
+    generated_timestamp: 1458128125
