@@ -18,16 +18,26 @@ class HumanModel(object):
         self.robot_commander = moveit_commander.RobotCommander()
         self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
         self.groups = {}
-        self.groups['head'] = moveit_commander.MoveGroupCommander('head')
-        self.groups['right_arm'] = moveit_commander.MoveGroupCommander('right_arm')
-        self.groups['left_arm'] = moveit_commander.MoveGroupCommander('left_arm')
-        self.groups['right_leg'] = moveit_commander.MoveGroupCommander('right_leg')
-        self.groups['left_leg'] = moveit_commander.MoveGroupCommander('left_leg')
+        self.groups['head'] = moveit_commander.MoveGroupCommander('Head')
+        self.groups['right_arm'] = moveit_commander.MoveGroupCommander('RightArm')
+        self.groups['left_arm'] = moveit_commander.MoveGroupCommander('LeftArm')
+        self.groups['right_leg'] = moveit_commander.MoveGroupCommander('RightLeg')
+        self.groups['left_leg'] = moveit_commander.MoveGroupCommander('LeftLeg')
+        self.groups['upper_body'] = moveit_commander.MoveGroupCommander('UpperBody')
+        self.groups['lower_body'] = moveit_commander.MoveGroupCommander('LowerBody')
+        self.groups['whole_body'] = moveit_commander.MoveGroupCommander('WholeBody')
         # initialize end-effectors dict
         self.end_effectors = {}
         # fill both dict
         for key, value in self.groups.iteritems():
             self.end_effectors[key] = value.get_end_effector_link()
+        # add the list of end-effectors for bodies
+        self.end_effectors['upper_body'] = [self.end_effectors['head'],
+                                            self.end_effectors['right_arm'],
+                                            self.end_effectors['left_arm']]
+        self.end_effectors['lower_body'] = [self.end_effectors['right_leg'],
+                                            self.end_effectors['left_leg']]
+        self.end_effectors['whole_body'] = self.end_effectors['upper_body'] + self.end_effectors['lower_body']
         # initialize common links per group
         self.group_links = {}
         self.group_links['head'] = ['torso', 'head_tip']
@@ -48,36 +58,23 @@ class HumanModel(object):
             self.joint_by_links[s+'_shin'] = [s+'_knee']
             self.joint_by_links[s+'_foot_tip'] = [s+'_ankle_0', s+'_ankle_1']
 
-    def full_forward_kinematic(self, joint_state):
-        def extract_group_joints(group_name):
-            active = self.groups[group_name].get_active_joints()
-            res = []
-            for joint in active:
-                index = joint_state.name.index(joint)
-                res.append(joint_state.position[index])
-            return res
+    def extract_group_joints(self, group_name, joint_state):
+        active = self.groups[group_name].get_active_joints()
+        res = []
+        for joint in active:
+            index = joint_state.name.index(joint)
+            res.append(joint_state.position[index])
+        return res
 
-        def arm_pose_in_hip(torso_pose, hand_pose):
-            return transformations.multiply_transform(torso_pose, hand_pose)
-
+    def full_forward_kinematic(self, joint_state, body='whole_body'):
         # initialize end-effector dict
         end_effectors_pose = {}
-        for key, value in self.end_effectors.iteritems():
-            end_effectors_pose[value] = []
         # calculate the forward kinematic by group
-        head_joints = extract_group_joints('head')
-        fk_head = self.forward_kinematic('head', head_joints, links=['torso', 'head_tip'])
-        end_effectors_pose['head_tip'] = fk_head[-1]
-        sides = ['right', 'left']
-        for s in sides:
-            # for the arms the specificity is to use torso pose
-            arm_joints = extract_group_joints(s+'_arm')
-            fk_arm = self.forward_kinematic(s+'_arm', arm_joints, base='/torso')
-            end_effectors_pose[s+'_hand_tip'] = arm_pose_in_hip(fk_head[0], fk_arm)
-            # legs pose are calculated normally
-            leg_joints = extract_group_joints(s+'_leg')
-            fk_leg = self.forward_kinematic(s+'_leg', leg_joints)
-            end_effectors_pose[s+'_foot_tip'] = fk_leg
+        body_joints = self.extract_group_joints(body, joint_state)
+        fk = self.forward_kinematic(body, body_joints, links=self.end_effectors[body])
+        # add the result in a dictionnary
+        for i in range(len(fk)):
+            end_effectors_pose[self.end_effectors[body][i]] = fk[i]
         return end_effectors_pose
 
     def forward_kinematic(self, group_name, joint_values, base='/hip', links=None, joint_names=None):
@@ -182,7 +179,6 @@ class HumanModel(object):
         if wait:
             rospy.sleep(0.1)
 
-
     def send_joint_values(self, joint_names, joint_values, wait=True):
         # get the current state
         rs = self.robot_commander.get_current_state()
@@ -272,13 +268,14 @@ class HumanModel(object):
         rs.joint_state.position = positions
         return rs.joint_state
 
-    def jacobian(self, group_name, joint_values, use_quaternion=False, link=None, ref_point=None):
+    def jacobian(self, group_name, joint_state, use_quaternion=False, link=None, ref_point=None):
         def compute_jacobian_srv():
             rospy.wait_for_service('compute_jacobian')
             try:
                 compute_jac = rospy.ServiceProxy('compute_jacobian', GetJacobian)
                 js = JointState()
-                js.position = joint_values
+                js.name = self.get_joint_names(group_name)
+                js.position = self.extract_group_joints(group_name, joint_state)
                 p = Point(x=ref_point[0], y=ref_point[1], z=ref_point[2])
                 # call the service
                 res = compute_jac(group_name, link, js, p, use_quaternion)

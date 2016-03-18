@@ -95,7 +95,7 @@ class Criterion(object):
         #     return crit
         def rot_jacobian(jac, rot, des_rot, joint_index):
             jac_rot = jac[3:, joint_index]
-        #     # the quaternion in the jacobian is in [w,x,y,z] order thus it is necessary to change it
+            # the quaternion in the jacobian is in [w,x,y,z] order thus it is necessary to change it
             rot_modified = np.concatenate(([rot[-1]], rot[:3]))
             des_modified = np.concatenate(([des_rot[-1]], des_rot[:3]))
             jac_inner = np.inner(jac_rot, des_modified)

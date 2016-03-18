@@ -8,9 +8,9 @@ JacobianSrv::JacobianSrv(string param_description){
 	this->kinematic_state = robot_state::RobotStatePtr(new robot_state::RobotState(kinematic_model));
 	this->kinematic_state->setToDefaultValues();
 	// fill the map of groups
-	this->groups["head"] = kinematic_model->getJointModelGroup("head");
-	this->groups["right_arm"] = kinematic_model->getJointModelGroup("right_arm");
-	this->groups["left_arm"] = kinematic_model->getJointModelGroup("left_arm");
+	this->groups["head"] = kinematic_model->getJointModelGroup("Head");
+	this->groups["right_arm"] = kinematic_model->getJointModelGroup("RightArm");
+	this->groups["left_arm"] = kinematic_model->getJointModelGroup("LeftArm");
 }
 
 JacobianSrv::~JacobianSrv(){}
