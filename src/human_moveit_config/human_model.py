@@ -58,6 +58,13 @@ class HumanModel(object):
             self.joint_by_links[s+'_shin'] = [s+'_knee']
             self.joint_by_links[s+'_foot_tip'] = [s+'_ankle_0', s+'_ankle_1']
 
+    def get_group_of_link(self, link):
+        for key, value in self.group_links.iteritems():
+            if link in value:
+                group = key
+                break
+        return group
+
     def extract_group_joints(self, group_name, joint_state):
         active = self.groups[group_name].get_active_joints()
         res = []
@@ -66,18 +73,7 @@ class HumanModel(object):
             res.append(joint_state.position[index])
         return res
 
-    def full_forward_kinematic(self, joint_state, body='whole_body'):
-        # initialize end-effector dict
-        end_effectors_pose = {}
-        # calculate the forward kinematic by group
-        body_joints = self.extract_group_joints(body, joint_state)
-        fk = self.forward_kinematic(body, body_joints, links=self.end_effectors[body])
-        # add the result in a dictionnary
-        for i in range(len(fk)):
-            end_effectors_pose[self.end_effectors[body][i]] = fk[i]
-        return end_effectors_pose
-
-    def forward_kinematic(self, group_name, joint_values, base='/hip', links=None, joint_names=None):
+    def forward_kinematic(self, joint_state, group_name='whole_body', base='/hip', links=None):
         def compute_fk_client(joints):
             rospy.wait_for_service('compute_fk')
             try:
@@ -95,48 +91,42 @@ class HumanModel(object):
                 print "Service call failed: %s" % e
 
         group = self.groups[group_name]
-        # if joint_names is None the joints vector is supposed to be full
-        if joint_names is None or not joint_names:
-            assert len(group.get_active_joints()) == len(joint_values)
-            joints = joint_values
-        else:
-            # get the full vector joints
-            joints = self.set_joint_values(group_name, joint_values, joint_names)
+        group_joints = self.extract_group_joints(group_name, joint_state)
         # if link is None assume it is the end-effector
         if links is None:
-            links = [self.end_effectors[group_name]]
+            links = self.end_effectors[group_name]
         if type(links) is not list:
-            links = [links]
-        pose_stamped_list = compute_fk_client(joints)
-        # transform it in a list of pose
-        if len(pose_stamped_list) == 1:
-            return transformations.pose_to_list(pose_stamped_list[0].pose)
-        pose_list = []
-        for pose_stamped in pose_stamped_list:
-            pose_list.append(transformations.pose_to_list(pose_stamped.pose))
-        return pose_list
+            if links == "all":
+                links = self.get_link_names(group_name)
+            else:
+                links = [links]
+        pose_stamped_list = compute_fk_client(group_joints)
+        # transform it in a dict of poses
+        pose_dict = {}
+        for i in range(len(links)):
+            pose_dict[links[i]] = transformations.pose_to_list(pose_stamped_list[i].pose)
+        return pose_dict
 
-    def inverse_kinematic(self, group_name, desired_poses, tolerance=0.1, continuity=False, fill=False, links=None):
+    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1):
         def compute_ik_client():
             rospy.wait_for_service('compute_human_ik')
             try:
                 compute_ik = rospy.ServiceProxy('compute_human_ik', GetHumanIK)
-                # convert the desired poses to geometry_msgs
-                poses = []
-                for pose in desired_poses:
-                    poses.append(transformations.list_to_pose(pose).pose)
-                res = compute_ik(group_name, links, poses, active_joints, tolerance, continuity)
-                return list(res.joint_state.position)
+                res = compute_ik(poses, fixed_joint_state, tolerance)
+                return res.joint_state
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
-        if links is None:
-            links = [self.end_effectors[group_name]]
-            active_joints = []
-        else:
-            if type(links) is not list:
-                links = [links]
-            # get the list of active joints
-            active_joints = self.get_joint_by_links(group_name, links, fill)
+        # convert the desired poses to PoseStamped
+        poses = []
+        for key, value in desired_poses.iteritems():
+            pose = transformations.list_to_pose(value)
+            pose.header.frame_id = key
+            poses.append(pose)
+        # convert the fixed joints to joint state
+        fixed_joint_state = JointState()
+        for key, value in fixed_joints.iteritems():
+            fixed_joint_state.name += key
+            fixed_joint_state.position += value
         return compute_ik_client()
 
     def get_joint_values(self, group_name, joint_names=None):
@@ -153,26 +143,8 @@ class HumanModel(object):
                 res.append(joint_values[index])
             return res
 
-    def set_joint_values(self, group_name, joint_values, joint_names):
-        current_values = self.get_joint_values(group_name)
-        # get names of active joints
-        active_joints = self.groups[group_name].get_active_joints()
-        for i in range(len(joint_names)):
-            index = active_joints.index(joint_names[i])
-            # replace the current value with the desired value
-            current_values[index] = joint_values[i]
-        # return the modified vector
-        return current_values
-
-    def get_joint_index(self, group_name, joint_names):
-        indexes = []
-        active_joints = self.groups[group_name].get_active_joints()
-        for name in joint_names:
-            indexes.append(active_joints.index(name))
-        return indexes
-
     def get_current_state(self):
-        return self.robot_commander.get_current_state()
+        return self.robot_commander.get_current_state().joint_state
 
     def send_state(self, joint_state, wait=True):
         self.joint_publisher.publish(joint_state)
@@ -195,13 +167,14 @@ class HumanModel(object):
         joints = []
         if type(links) is not list:
             links = [links]
+        link_names = self.group_links[group_name]
         for i in range(len(links)):
-            supposed_index = self.group_links[group_name].index(links[i])
+            supposed_index = link_names.index(links[i])
             if supposed_index == i or not fill:
                 joints += self.joint_by_links[links[i]]
             else:
                 for j in range(i, supposed_index+1):
-                    link = self.group_links[group_name][j]
+                    link = link_names[j]
                     joints += self.joint_by_links[link]
         # remove dupblicates
         seen = set()
@@ -214,8 +187,8 @@ class HumanModel(object):
 
     def get_joint_limits(self, joint_names=None):
         if joint_names is None:
-            rs = self.get_current_state()
-            joint_names = rs.joint_state.name
+            js = self.get_current_state()
+            joint_names = js.name
         xml_urdf = rospy.get_param('robot_description')
         dict_urdf = xmltodict.parse(xml_urdf)
         joints_urdf = []
@@ -251,22 +224,32 @@ class HumanModel(object):
 
     def get_joint_names(self, group_name=None):
         if group_name is None:
-            rs = self.get_current_state()
-            return rs.joint_state.name
+            js = self.get_current_state()
+            return js.name
         else:
             return self.groups[group_name].get_active_joints()
 
+    def get_link_names(self, group_name='whole_body'):
+        robot_group_name = self.groups[group_name].get_name()
+        return self.robot_commander.get_link_names(robot_group_name)
+
     def get_random_state(self):
-        rs = self.robot_commander.get_current_state()
-        positions = list(rs.joint_state.position)
+        js = self.get_current_state()
+        positions = list(js.position)
         for group_name, group in self.groups.iteritems():
             joints = group.get_random_joint_values()
             joint_names = group.get_active_joints()
             for i in range(len(joints)):
-                index = rs.joint_state.name.index(joint_names[i])
+                index = js.name.index(joint_names[i])
                 positions[index] = joints[i]
-        rs.joint_state.position = positions
-        return rs.joint_state
+        js.position = positions
+        return js
+
+    def get_initial_state(self):
+        js = self.get_current_state()
+        # put the model in T pose, i.e all joints values at 0
+        js.position = np.zeros(len(js.position))
+        return js
 
     def jacobian(self, group_name, joint_state, use_quaternion=False, link=None, ref_point=None):
         def compute_jacobian_srv():
@@ -284,7 +267,6 @@ class HumanModel(object):
                 return jac_array
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
-
         # assign values
         if link is None:
             link = self.end_effectors[group_name]

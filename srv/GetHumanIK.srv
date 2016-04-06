@@ -8,11 +8,8 @@
 #
 # The service returns the joint state corresponding to the desired pose
 
-string group_name
-string[] links
-geometry_msgs/Pose[] desired_poses
-string[] active_joints
+geometry_msgs/PoseStamped[] desired_poses
+sensor_msgs/JointState fixed_joints
 float32 tolerance
-bool continuity
 ---
 sensor_msgs/JointState joint_state 

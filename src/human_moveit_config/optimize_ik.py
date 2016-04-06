@@ -1,205 +1,151 @@
 #!/usr/bin/env python
 import numpy as np
-import scipy.optimize as opti
+from scipy.optimize import minimize
 from .human_model import HumanModel
-import math
-import rospy
 from human_moveit_config.srv import GetHumanIKResponse
-from sensor_msgs.msg import JointState
 import transformations
-from copy import copy
+import tf
 
 
-class Criterion(object):
+class IKOptimizer:
     def __init__(self):
-        self.human = HumanModel()
-        self.desired_poses = {}
+        self.model = HumanModel()
+        # set the cost factors (end_effectors, fixed_joints)
+        self.cost_factors = [1, 1]
+        self.distance_factor = [0, 1]
 
-    def pose_to_euler(self, pose):
-        def quaternion_to_euler(q):
-            euler = np.zeros(3)
-            test_sing = q[0]*q[1] + q[2]*q[3]
-            if test_sing > 0.499:
-                euler[0] = 2*math.atan2(q[0], q[3])
-                euler[1] = math.pi/2.
-                euler[2] = 0
-            elif test_sing < -0.499:
-                euler[0] = -2*math.atan2(q[0], q[3])
-                euler[1] = -math.pi/2.
-                euler[2] = 0
-            else:
-                euler[0] = math.atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(q[1]**2+q[2]**2))
-                try:
-                    euler[1] = math.asin(2*(q[0]*q[2]-q[3]*q[1]))
-                except ValueError:
-                    euler[1] = math.copysign(math.pi/2, 2*(q[0]*q[2]-q[3]*q[1]))
-                euler[2] = math.atan2(2*(q[0]*q[3]+q[1]*q[2]), 1-2*(q[2]**2+q[3]**2))
-            return euler
-        pos = pose[0]
-        rot = quaternion_to_euler(pose[1])
-        return np.concatenate((pos, rot))
+    def fixed_joints_cost(self, joint_array, dict_values):
+        cost = 0
+        for key, value in dict_values.iteritems():
+            cost += (joint_array[self.model.get_joint_names().index(key)]-value)**2
+        return cost
 
-    def distance_cost(self, pose1, pose2):
-        # calculate position ditance
-        pos_cost = np.linalg.norm(np.array(pose1[0])-np.array(pose2[0]))
-        # distance between two quaternions
-        # try:
-        #     rot_cost = math.acos(2*np.inner(pose1[1], pose2[1])**2-1)
-        # except ValueError:
-        #     rot_cost = math.pi
-        rot_cost = 1-np.inner(pose1[1], pose2[1])**2
-        return pos_cost + rot_cost
+    def jacobian_fixed_joints_cost(self, joint_array, dict_values):
+        jac_fix = np.zeros(len(self.model.get_joint_names()))
+        for key, value in dict_values.iteritems():
+            index = self.model.get_joint_names().index(key)
+            jac_fix[index] = 2*(joint_array[index]-value)
+        return jac_fix
 
-    def evaluate(self, joints, group_name, joint_names, links):
-        # calculate the distance with the desired pose
-        pose = self.human.forward_kinematic(group_name, joints, links=links, joint_names=joint_names)
-        # deal with pose not being a list
-        if len(links) == 1:
-            pose = [pose]
-        C = 0
-        for i in range(len(links)):
-            # only add the cost if the desired pose exist
-            if len(self.desired_poses[links[i]]) > 0:
-                # calculate the score
-                C += self.distance_cost(pose[i], self.desired_poses[links[i]])
-        return C
+    def desired_poses_cost(self, joint_array, dict_values):
+        # get the forward kinematic of the whole body at specified links
+        js = self.model.get_current_state()
+        js.position = joint_array
+        fk = self.model.forward_kinematic(js, links=dict_values.keys())
+        # loop through all the current poses and compare it with desired ones
+        cost = 0
+        for key, value in fk.iteritems():
+            # extract the desired pose
+            des_pose = dict_values[key]
+            # calcualte distance in position
+            cost += self.distance_factor[0]*np.sum((np.array(value[0]) - np.array(des_pose[0]))**2)
+            # calcualte distance in rotation
+            # cost += self.distance_factor[1]*2*np.arccos(abs(np.inner(value[1], des_pose[1])))
+            cost += self.distance_factor[1]*(1 - np.inner(value[1], des_pose[1])**2)
+        return cost
 
-    def jacobian(self, joints, group_name, joint_names, links):
-        def pos_jacobian(jac, pos, des_pos, joint_index):
-            crit = 0
-            dist = np.linalg.norm(np.array(pos)-np.array(des_pos))
-            diff = np.array(pos) - np.array(des_pos)
-            for d in range(3):
-                crit += jac[d, joint_index]*diff[d]
-            if dist > 0.0001:
-                crit /= dist
-            else:
-                crit = 0.0
-            return crit
+    def quaternion_jacobian(self, quat_fk, jac_vect):
+        # calculate the quaternion skew simetric matrix
+        skew_matrix = [[-quat_fk[0], -quat_fk[1], -quat_fk[2]],
+                       [quat_fk[3], -quat_fk[2], quat_fk[1]],
+                       [quat_fk[2], quat_fk[3], -quat_fk[0]],
+                       [-quat_fk[1], quat_fk[0], quat_fk[3]]]
+        # multiply it with the jacobian
+        jac_quat = 0.5*np.dot(skew_matrix, jac_vect)
 
-        # def rot_jacobian(jac, rot, des_rot, joint_index):
-        #     # get the column of the jacobian for rotation at joint index
-        #     jac_rot = jac[3:, joint_index]
-        #     # the quaternion in the jacobian is in [w,x,y,z] order thus it is necessary to change it
-        #     # rot_modified = np.concatenate(([rot[-1]], rot[:3]))
-        #     # des_modified = np.concatenate(([des_rot[-1]], des_rot[:3]))
-        #     # jac_inner = np.inner(jac_rot, des_modified)
-        #     # rot_inner = np.inner(rot_modified, des_modified)
-        #     jac_inner = np.inner(jac_rot, des_rot)
-        #     rot_inner = np.inner(rot, des_rot)
-        #     # apply chain rule of derivative
-        #     if abs(1-rot_inner**2) > 0.0001:
-        #         crit = -2*jac_inner/math.sqrt(1-rot_inner**2)
-        #     else:
-        #         crit = 0.0
-        #     return crit
-        def rot_jacobian(jac, rot, des_rot, joint_index):
-            jac_rot = jac[3:, joint_index]
-            # the quaternion in the jacobian is in [w,x,y,z] order thus it is necessary to change it
-            rot_modified = np.concatenate(([rot[-1]], rot[:3]))
-            des_modified = np.concatenate(([des_rot[-1]], des_rot[:3]))
-            jac_inner = np.inner(jac_rot, des_modified)
-            rot_inner = np.inner(rot_modified, des_modified)
-            # jac_inner = np.inner(jac_rot, des_rot)
-            # rot_inner = np.inner(rot, des_rot)
-            crit = -2*jac_inner*rot_inner
-            return crit
+        # print jac_quat
+        # # reorder it according to ROS order
+        temp = jac_quat[0]
+        jac_quat[:-1] = jac_quat[1:]
+        jac_quat[-1] = temp
 
-        jac_crit = np.zeros(len(joints))
-        # calculate the distance with the desired pose
-        pose = self.human.forward_kinematic(group_name, joints, links=links, joint_names=joint_names)
-        # deal with pose not being a list
-        if len(links) == 1:
-            pose = [pose]
-        # get the index of the joints
-        joint_index = self.human.get_joint_index(group_name, joint_names)
-        # else case with multiple links
-        for i in range(len(links)):
-            # compute distance with reference frame
-            if len(self.desired_poses[links[i]]) > 0:
-                # compute the human jacobian
-                jac_human = self.human.jacobian(group_name, joints, use_quaternion=True, link=links[i])
-                # loop through all the joints to calculate the criterion jacobian
-                for n in range(len(joints)):
-                    # calculate the value based on the distance in both position and orientation
-                    jac_crit[n] += pos_jacobian(jac_human, pose[i][0], self.desired_poses[links[i]][0], joint_index[n])
-                    jac_crit[n] += 10*rot_jacobian(jac_human, pose[i][1], self.desired_poses[links[i]][1], joint_index[n])
-        # print jac_crit
-        return jac_crit
+        # print jac_quat
 
+        # print '--------------------'
+        return jac_quat
 
-class Optimizer:
-    def __init__(self):
-        self.criterion = Criterion()
-        self.max_iter = 50
+    def jacobian_desired_poses_cost(self, joint_array, dict_values):
+        joint_names = self.model.get_joint_names()
+        # get current state
+        js = self.model.get_current_state()
+        # set the new joint values
+        js.position = joint_array
+        fk = self.model.forward_kinematic(js, links=dict_values.keys())
+        # loop through all the desired poses
+        jac_des_pose = np.zeros(len(joint_names))
+        for key, value in fk.iteritems():
+            # get the group name corresponding to the link
+            group_name = self.model.get_group_of_link(key)
+            group_joints = self.model.get_joint_names(group_name)
+            # extract the desired pose
+            des_pose = dict_values[key]
+            # calculate the jacobian for the given link
+            jac_model = self.model.jacobian(group_name, js, use_quaternion=False, link=key)
+            # precalculate difference in position
+            pos_diff = np.array(value[0]) - np.array(des_pose[0])
+            # pre calculate the inner product
+            inner_prod = np.inner(value[1], des_pose[1])
+            # flip the quaternion if necessary
+            if inner_prod < 0:
+                print "Hello Woooooooooooooorld"
+                value[1] = -np.array(value[1])
+                inner_prod = -inner_prod
+            # quat_des = des_pose[1]
+            for i in range(len(group_joints)):
+                index = joint_names.index(group_joints[i])
+                for j in range(3):
+                    jac_des_pose[index] += 2*self.distance_factor[0]*jac_model[j, i]*pos_diff[j]
+                # extract the rotational part of the jacobian
+                jac_vect = jac_model[3:, i]
+                # convert it into quaternions
+                jac_quat = self.quaternion_jacobian(value[1], jac_vect)
+                # calculate jacobian of rotational distance
+                # jac_des_pose[index] += -2*sign*self.distance_factor[1]*np.inner(jac_vect, des_pose[1])/np.sqrt(1-abs(inner_prod))
+                jac_des_pose[index] += -2*self.distance_factor[1]*np.inner(jac_quat, des_pose[1])*inner_prod
+        return jac_des_pose
+
+    def cost_function(self, q, desired_poses={}, fixed_joints={}):
+        cost = 0
+        if desired_poses:
+            cost += self.cost_factors[0]*self.desired_poses_cost(q, desired_poses)
+        if fixed_joints:
+            cost += self.cost_factors[1]*self.fixed_joints_cost(q, fixed_joints)
+
+        print cost
+        return cost
+
+    def jacobian_cost_function(self, q, desired_poses={}, fixed_joints={}):
+        jac_cost = np.zeros(len(self.model.get_joint_names()))
+        if desired_poses:
+            jac_cost += self.cost_factors[0]*self.jacobian_desired_poses_cost(q, desired_poses)
+        if fixed_joints:
+            jac_cost += self.cost_factors[1]*self.jacobian_fixed_joints_cost(q, fixed_joints)
+        return jac_cost
 
     def handle_compute_ik(self, req):
-        def solution_reached(joints, previous_value=None):
-            bool_reached = True
-            sum_dist = 0
-            for link in req.links:
-                # compute fk of joint
-                reached_pose = self.criterion.human.forward_kinematic(req.group_name,
-                                                                      joints,
-                                                                      links=link,
-                                                                      joint_names=req.active_joints)
-                # calculate the distance
-                dist = self.criterion.distance_cost(reached_pose, self.criterion.desired_poses[link])
-                sum_dist += dist
-                bool_reached = bool_reached and (dist < req.tolerance)
-            # check if the maximum number of iterations have been reached
-            bool_reached = bool_reached or iteration > self.max_iter
-            # check improvment with previous results
-            if previous_value is not None:
-                bool_reached = bool_reached or abs(sum_dist-previous_value) < 0.001
-            return bool_reached, sum_dist
-
-        # set the desired poses in euler
-        for i in range(len(req.links)):
-            pose = transformations.pose_to_list(req.desired_poses[i])
-            self.criterion.desired_poses[req.links[i]] = pose
-        # initialize joints
-        init_joints = self.criterion.human.get_joint_values(req.group_name, req.active_joints)
-        if req.active_joints:
-            joint_limits = self.criterion.human.get_joint_limits(req.active_joints)
-        else:
-            joint_limits = self.criterion.human.joint_limits_by_group(req.group_name)['limits']
-        # loop until convenient solution is reached
-        iteration = 0
-        min_crit = 1000
-        joints = copy(init_joints)
-        best_joints = copy(init_joints)
-        # loop till a solution is not found
-        solution_found, crit_value = solution_reached(joints)
-        previous_value = 1000
-        while not solution_found and not rospy.is_shutdown():
-            if req.continuity:
-                joints = copy(init_joints)
-            else:
-                joints = self.criterion.human.get_random_joint_values(req.group_name, req.active_joints)
-            res = opti.minimize(self.criterion.evaluate,
-                                joints,
-                                args=(req.group_name, req.active_joints, req.links),
-                                # jac=self.criterion.jacobian,
-                                bounds=joint_limits,
-                                method='L-BFGS-B')
-            joints = res.x.tolist()
-            solution_found, crit_value = solution_reached(joints, previous_value)
-            # solution_found, crit_value = solution_reached(joints)
-            if crit_value < min_crit:
-                best_joints = res.x.tolist()
-                min_crit = crit_value
-            iteration += 1
-            previous_value = crit_value
-        # set the result
-        if req.active_joints:
-            joint_result = self.criterion.human.set_joint_values(req.group_name, best_joints, req.active_joints)
-        else:
-            joint_result = best_joints
+        # convert the desired poses to dict
+        desired_dict = {}
+        for pose in req.desired_poses:
+            desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
+        # convert the fixed joint state to dict
+        fixed_joints_dict = {}
+        for i in range(len(req.fixed_joints.name)):
+            fixed_joints_dict[req.fixed_joints.name[i]] = req.fixed_joints.position[i]
+        # get initial state
+        init_joints = self.model.get_current_state().position
+        # get the joints limits for the optimization
+        joint_limits = self.model.get_joint_limits()
+        # optimize to find the corresponding IK
+        res = minimize(self.cost_function, init_joints,
+                       jac=self.jacobian_cost_function,
+                       args=(desired_dict, fixed_joints_dict, ),
+                       method='L-BFGS-B',
+                       bounds=joint_limits)
         # convert it to a joint state
-        js = JointState()
-        js.name = self.criterion.human.groups[req.group_name].get_active_joints()
-        js.position = joint_result
+        js = self.model.get_current_state()
+        js.position = res.x
+
+        print res
 
         # return server reply
         return GetHumanIKResponse(js)
