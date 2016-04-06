@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface" name="human_model" >
+       
+<xacro:include filename="props_global.urdf.xacro" />
+ 
+<xacro:macro name="human_body">
+	<link name="hip"/>
+
+    <link name="waist">
+      <visual>
+        <origin xyz="0 0 ${waist_length/2}" rpy="0 0 0" />
+        <geometry>
+	        <!--<box size="0.4 0.2 ${waist_length}" />-->
+	        <cylinder radius="${waist_radius}" length="${waist_length}" />
+        </geometry>
+      </visual>
+    </link>
+
+	<link name="spine_0"/>
+    <link name="spine_1"/>
+
+    <link name="torso">
+      <visual>
+        <origin xyz="0 0 ${torso_length/2}" rpy="0 0 0" />
+        <geometry>
+	        <!--<box size="0.4 0.2 ${torso_length}" />-->
+	        <cylinder radius="${torso_radius}" length="${torso_length}" />
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="neck_0"/>
+    <link name="neck_1"/>
+
+    <link name="head">
+      <visual>
+        <origin xyz="0 0 ${neck_length}" rpy="0 0 0" />
+        <geometry>
+	        <sphere radius="${head_radius}" />
+        </geometry>
+      </visual>
+    </link>
+
+    <link name="head_tip"/>
+
+    <joint name="hip" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="hip" />
+      <child link="waist" />
+    </joint>
+
+    <!-- SPINE : spherical -->
+    <joint name="spine_0" type="revolute">
+      <origin xyz="0 0 ${waist_length}" rpy="0 0 0" />
+      <axis xyz="1 0 0" />
+      <parent link="waist" />
+      <child link="spine_0" />
+      <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
+    </joint>
+
+    <joint name="spine_1" type="revolute">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <axis xyz="0 1 0" />
+      <parent link="spine_0" />
+      <child link="spine_1" />
+      <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
+    </joint>
+    
+    <joint name="spine_2" type="revolute">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <axis xyz="0 0 1" />
+      <parent link="spine_1" />
+      <child link="torso" />
+      <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
+    </joint>
+
+    <!-- NECK : spherical -->
+        <joint name="neck_0" type="revolute">
+          <origin xyz="0 0 ${torso_length}" rpy="0 0 0" />
+          <axis xyz="1 0 0" />
+          <parent link="torso" />
+          <child link="neck_0" />
+          <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
+        </joint>
+
+        <joint name="neck_1" type="revolute">
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <axis xyz="0 1 0" />
+          <parent link="neck_0" />
+          <child link="neck_1" />
+          <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
+        </joint>
+
+        <joint name="neck_2" type="revolute">
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <axis xyz="0 0 1" />
+          <parent link="neck_1" />
+          <child link="head" />
+          <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
+        </joint>
+    <!-- END NECK -->
+
+    <joint name="head" type="fixed">
+      <origin xyz="0 0 ${neck_length}" rpy="0 0 0" />
+      <parent link="head" />
+      <child link="head_tip" />
+    </joint>
+
+</xacro:macro>
+
+</robot>

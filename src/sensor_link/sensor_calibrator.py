@@ -4,21 +4,12 @@ import scipy.optimize as opti
 from .human_model import HumanModel
 import math
 import transformations
-import rospkg
-import json
 
 
 class OptitrackCalibrator(object):
     def __init__(self):
         # create human model
         self.human = HumanModel()
-        # get initial guess for calibration
-        rospack = rospkg.RosPack()
-        with open(rospack.get_path("human_moveit_config")+"/config/calibration.json") as data_file:
-            self.init_calibration = json.load(data_file)
-        self.links = [['head', 'torso'], ['head', 'head_tip'],
-                      ['right_arm', 'right_upper_arm'], ['right_arm', 'right_forearm'],
-                      ['right_arm', 'right_hand_tip']]
         self.fk = {}
 
     def extract_transforms(self, flat_transforms):
@@ -60,10 +51,11 @@ class OptitrackCalibrator(object):
         hip_transform = list_calibr[0]
         # loop trough all the transforms
         for i in range(1, len(list_calibr)):
+            key = self.keys[i]
             # get the fk
-            fk = self.fk[self.links[i-1][1]]
+            fk = self.fk[key]
             # compute the corresponding transformation from recorded data
-            pose = transformations.multiply_transform(hip_transform, self.recorded_poses[i])
+            pose = transformations.multiply_transform(hip_transform, self.recorded_poses[key])
             pose = transformations.multiply_transform(pose, transformations.inverse_transform(list_calibr[i]))
             # compute the cost based on the distance
             cost += distance_cost(fk, pose)
@@ -71,23 +63,25 @@ class OptitrackCalibrator(object):
         print cost
         return cost
 
-    def calibrate(self, record, joint_values):
-        def flatten_transforms(transform_dict):
+    def calibrate(self, record):
+        def random_transforms(pos_bounds, rot_bounds):
             flat_transforms = []
-            for key, transform in transform_dict.iteritems():
-                flat_transforms += transform[0]
-                flat_transforms += transform[1]
+            for key in self.keys:
+                # add a random position within bounds
+                flat_transforms += np.random.uniform(pos_bounds[0], pos_bounds[1], 3).tolist()
+                # add a random quaternion
+                rot = np.random.uniform(rot_bounds[0], rot_bounds[1], 4)
+                flat_transforms += (rot/np.linalg.norm(rot)).tolist()
             return flat_transforms
 
         self.recorded_poses = record
-        # calculate the fk of the recorded pose
-        for i in range(len(self.links)):
-            group_name = self.links[i][0]
-            # get the forward kinematic of the corresponding link
-            self.fk[self.links[i][1]] = self.human.forward_kinematic(group_name, joint_values[group_name], links=self.links[i][1])
-
-        # collect initial guess
-        initial_calibr = flatten_transforms(self.init_calibration)
+        # calculate the fk of the human model in T pose
+        js = self.human.get_initial_state()
+        self.fk = self.human.forward_kinematic(js, links='all')
+        self.keys = record.keys()
+        # remove the hip from the list to put in first position
+        self.keys.remove('waist')
+        self.keys = ['waist'] + self.keys
         # set limits for search space
         bounds = []
         pos_bounds = [-0.5, 0.5]
@@ -97,23 +91,19 @@ class OptitrackCalibrator(object):
                 bounds.append(pos_bounds)
             for i in range(4):
                 bounds.append(rot_bounds)
-
+        # collect initial guess
+        initial_calibr = random_transforms(pos_bounds, rot_bounds)
         # find the optimized calibration
         res = opti.minimize(self._evaluate_calibration,
                             initial_calibr,
                             bounds=bounds,
-                            method='L-BFGS-B',
-                            options={'maxiter': 500})
+                            method='L-BFGS-B')
 
         # extract the list of transformations
         list_transforms = self.extract_transforms(res.x)
         res_calibr = {}
-        res_calibr['/human/hip'] = list_transforms[0]
-        res_calibr['/human/torso'] = list_transforms[1]
-        res_calibr['/human/head'] = list_transforms[2]
-        res_calibr['/human/right_shoulder'] = list_transforms[3]
-        res_calibr['/human/right_wrist'] = list_transforms[4]
-        res_calibr['/human/right_hand'] = list_transforms[5]
+        for i in range(len(self.keys)):
+            res_calibr[self.keys[i]] = list_transforms[i]
         print res_calibr
 
         return res_calibr

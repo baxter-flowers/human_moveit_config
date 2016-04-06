@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+from sensor_link.sensor_reader import SensorReader
+import rospy
+import rospkg
+import xacro
+import os
+import sys
+
+
+class Calibrator():
+    def __init__(self, use_timer=True):
+        self.use_timer = use_timer
+        self.rospack = rospkg.RosPack()
+        self.sensor = SensorReader(False)
+        self.human = None
+
+    def request_for_t_position(self):
+        while not rospy.is_shutdown():
+            if self.use_timer:
+                rospy.sleep(5)
+                os.system('beep')
+            else:
+                raw_input("User in T position, press <Enter> when ready...")
+            if self.sensor.calibrate():
+                rospy.loginfo("T pose recorded successfully")
+                break
+            else:
+                rospy.logerr("Cannot calibrate, skeleton not visible")
+
+    def create_urdf(self, output_filename=None, output_param='/human_description'):
+        str_lengths = {k: str(v) for k, v in self.sensor.lengths.iteritems()}
+        xacro.set_substitution_args_context(str_lengths)
+
+        with open(self.rospack.get_path("human_moveit_config")+"/urdf/xacro/human_skeleton.urdf.xacro") as f:
+            document = xacro.parse(f)
+
+        xacro.process_includes(document, self.rospack.get_path("human_moveit_config")+"/urdf/xacro")
+        xacro.eval_self_contained(document)
+
+        rospy.set_param(output_param, document.toprettyxml(indent='  '))
+
+        # save the model under the user name if specified
+        if output_filename is not None:
+            with open(output_filename, 'w') as f:
+                f.write(document.toprettyxml(indent='  '))
+        # also overwrite current human model for moveit
+        urdf_file = '/urdf/human.urdf'
+        output_urdf = self.rospack.get_path("human_moveit_config")+urdf_file
+        with open(output_urdf, 'w') as f:
+            f.write(document.toprettyxml(indent='  '))
+
+    def create_calibration_matrices(self):
+        # create human model
+        return 0
+
+if __name__ == '__main__':
+    rospy.init_node('kinect_skeleton_calibrator')
+    calibrator = Calibrator(sys.argv[1] == 'True')
+    # record skeleton data
+    calibrator.request_for_t_position()
+    # create URDF file
+    person_name = rospy.get_param('/human/person_name')
+    if person_name is not 'human':
+        filename = "/urdf/models"+person_name+'.urdf'
+        output_urdf = calibrator.rospack.get_path("human_moveit_config")+filename
+        calibrator.create_urdf(output_urdf)
+    else:
+        calibrator.create_urdf()
+    # create calibration matrices from human model
+    calibrator.create_calibration_matrices()
