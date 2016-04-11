@@ -1,18 +1,20 @@
 #!/usr/bin/env python
+from sensor_link.sensor_calibrator import SensorCalibrator
 from sensor_link.sensor_reader import SensorReader
 import rospy
 import rospkg
 import xacro
 import os
 import sys
+import json
 
 
-class Calibrator():
+class ModelGenerator(object):
     def __init__(self, use_timer=True):
         self.use_timer = use_timer
         self.rospack = rospkg.RosPack()
         self.sensor = SensorReader(False)
-        self.human = None
+        self.sensor_calibr = SensorCalibrator()
 
     def request_for_t_position(self):
         while not rospy.is_shutdown():
@@ -26,6 +28,10 @@ class Calibrator():
                 break
             else:
                 rospy.logerr("Cannot calibrate, skeleton not visible")
+        # save the recorded T pose
+        filename = '/tmp/skeleton.json'
+        with open(filename, 'w') as output_file:
+            json.dump(self.sensor.skeletons['kinect'], output_file, sort_keys=True, indent=4)
 
     def create_urdf(self, output_filename=None, output_param='/human_description'):
         str_lengths = {k: str(v) for k, v in self.sensor.lengths.iteritems()}
@@ -50,21 +56,23 @@ class Calibrator():
             f.write(document.toprettyxml(indent='  '))
 
     def create_calibration_matrices(self):
-        # create human model
-        return 0
+        # for all the recorded skeletons calibrate the transformation matrices
+        dict_calibr = {}
+        for key, value in self.sensor.skeletons.iteritems():
+            if value:
+                dict_calibr[key] = self.sensor_calibr.calibrate(value)
+        print dict_calibr
 
 if __name__ == '__main__':
     rospy.init_node('kinect_skeleton_calibrator')
-    calibrator = Calibrator(sys.argv[1] == 'True')
+    generator = ModelGenerator(sys.argv[1] == 'True')
     # record skeleton data
-    calibrator.request_for_t_position()
+    generator.request_for_t_position()
     # create URDF file
-    person_name = rospy.get_param('/human/person_name')
+    person_name = str(rospy.get_param('/human/person_name'))
     if person_name is not 'human':
-        filename = "/urdf/models"+person_name+'.urdf'
-        output_urdf = calibrator.rospack.get_path("human_moveit_config")+filename
-        calibrator.create_urdf(output_urdf)
+        filename = "/urdf/models/"+person_name+'.urdf'
+        output_urdf = generator.rospack.get_path("human_moveit_config")+filename
+        generator.create_urdf(output_urdf)
     else:
-        calibrator.create_urdf()
-    # create calibration matrices from human model
-    calibrator.create_calibration_matrices()
+        generator.create_urdf()

@@ -1,15 +1,15 @@
 #!/usr/bin/env python
+# from human_moveit_config.human_model import HumanModel
 import numpy as np
 import scipy.optimize as opti
-from .human_model import HumanModel
 import math
 import transformations
 
 
-class OptitrackCalibrator(object):
+class SensorCalibrator(object):
     def __init__(self):
         # create human model
-        self.human = HumanModel()
+        # 1self.human = HumanModel()
         self.fk = {}
 
     def extract_transforms(self, flat_transforms):
@@ -86,7 +86,7 @@ class OptitrackCalibrator(object):
         bounds = []
         pos_bounds = [-0.5, 0.5]
         rot_bounds = [-1, 1]
-        for key, value in self.init_calibration.iteritems():
+        for key in self.keys:
             for i in range(3):
                 bounds.append(pos_bounds)
             for i in range(4):
