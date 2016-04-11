@@ -1,0 +1,17 @@
+<launch>
+	<arg name="model" />
+	<arg name="gui" default="False" />
+	<param name="human_description" textfile="$(find human_moveit_config)/urdf/models/$(arg model)" /> 
+	<param name="use_gui" value="$(arg gui)"/>
+	<param name="tf_prefix" type="string" value="/human" />
+	
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
+		<remap from="robot_description" to="human_description" />
+		<remap from="joint_states" to="/human/joint_states" />
+	</node>
+	<node name="human_state_publisher" pkg="robot_state_publisher" type="state_publisher" >
+		<remap from="robot_description" to="human_description" />
+		<remap from="joint_states" to="/human/joint_states" />
+	</node>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find human_moveit_config)/config/display_urdf.rviz" required="true" />
+</launch>
