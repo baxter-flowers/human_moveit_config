@@ -10,7 +10,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.74256
-    Tree Height: 437
+    Tree Height: 156
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -280,7 +280,7 @@ Visualization Manager:
         Start State Alpha: 1
         Start State Color: 0; 255; 0
       Planning Scene Topic: move_group/monitored_planning_scene
-      Robot Description: robot_description
+      Robot Description: human_description
       Scene Geometry:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
@@ -492,91 +492,91 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        human/head:
+        head:
           Value: true
-        human/head_tip:
+        head_tip:
           Value: true
-        human/hip:
+        hip:
           Value: true
-        human/left_ankle:
+        left_ankle:
           Value: true
-        human/left_arm_mount:
+        left_arm_mount:
           Value: true
-        human/left_elbow_0:
+        left_elbow_0:
           Value: true
-        human/left_foot:
+        left_foot:
           Value: true
-        human/left_foot_tip:
+        left_foot_tip:
           Value: true
-        human/left_forearm:
+        left_forearm:
           Value: true
-        human/left_hand:
+        left_hand:
           Value: true
-        human/left_hand_tip:
+        left_hand_tip:
           Value: true
-        human/left_hip_0:
+        left_hip_0:
           Value: true
-        human/left_hip_1:
+        left_hip_1:
           Value: true
-        human/left_leg_mount:
+        left_leg_mount:
           Value: true
-        human/left_shin:
+        left_shin:
           Value: true
-        human/left_shoulder_0:
+        left_shoulder_0:
           Value: true
-        human/left_shoulder_1:
+        left_shoulder_1:
           Value: true
-        human/left_thigh:
+        left_thigh:
           Value: true
-        human/left_upper_arm:
+        left_upper_arm:
           Value: true
-        human/left_wrist_0:
+        left_wrist_0:
           Value: true
-        human/neck_0:
+        neck_0:
           Value: true
-        human/neck_1:
+        neck_1:
           Value: true
-        human/right_ankle:
+        right_ankle:
           Value: true
-        human/right_arm_mount:
+        right_arm_mount:
           Value: true
-        human/right_elbow_0:
+        right_elbow_0:
           Value: true
-        human/right_foot:
+        right_foot:
           Value: true
-        human/right_foot_tip:
+        right_foot_tip:
           Value: true
-        human/right_forearm:
+        right_forearm:
           Value: true
-        human/right_hand:
+        right_hand:
           Value: true
-        human/right_hand_tip:
+        right_hand_tip:
           Value: true
-        human/right_hip_0:
+        right_hip_0:
           Value: true
-        human/right_hip_1:
+        right_hip_1:
           Value: true
-        human/right_leg_mount:
+        right_leg_mount:
           Value: true
-        human/right_shin:
+        right_shin:
           Value: true
-        human/right_shoulder_0:
+        right_shoulder_0:
           Value: true
-        human/right_shoulder_1:
+        right_shoulder_1:
           Value: true
-        human/right_thigh:
+        right_thigh:
           Value: true
-        human/right_upper_arm:
+        right_upper_arm:
           Value: true
-        human/right_wrist_0:
+        right_wrist_0:
           Value: true
-        human/spine_0:
+        spine_0:
           Value: true
-        human/spine_1:
+        spine_1:
           Value: true
-        human/torso:
+        torso:
           Value: true
-        human/waist:
+        waist:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -584,7 +584,54 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        hip:
+          left_leg_mount:
+            left_hip_0:
+              left_hip_1:
+                left_thigh:
+                  left_shin:
+                    left_ankle:
+                      left_foot:
+                        left_foot_tip:
+                          {}
+          right_leg_mount:
+            right_hip_0:
+              right_hip_1:
+                right_thigh:
+                  right_shin:
+                    right_ankle:
+                      right_foot:
+                        right_foot_tip:
+                          {}
+          waist:
+            spine_0:
+              spine_1:
+                torso:
+                  left_arm_mount:
+                    left_shoulder_0:
+                      left_shoulder_1:
+                        left_upper_arm:
+                          left_elbow_0:
+                            left_forearm:
+                              left_wrist_0:
+                                left_hand:
+                                  left_hand_tip:
+                                    {}
+                  neck_0:
+                    neck_1:
+                      head:
+                        head_tip:
+                          {}
+                  right_arm_mount:
+                    right_shoulder_0:
+                      right_shoulder_1:
+                        right_upper_arm:
+                          right_elbow_0:
+                            right_forearm:
+                              right_wrist_0:
+                                right_hand:
+                                  right_hand_tip:
+                                    {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -621,17 +668,17 @@ Visualization Manager:
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: true
-  Height: 876
+    collapsed: false
+  Height: 1056
   Help:
     collapsed: false
-  Hide Left Dock: true
+  Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
-    collapsed: true
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003befc0200000005fb000000100044006900730070006c0061007900730000000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073000000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006700000001c100000225000001ab00ffffff000005ff0000032600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003dafc0200000005fb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073010000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001c100000241000001ab00ffffff00000488000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
-    collapsed: true
-  Width: 1535
-  X: 65
+    collapsed: false
+  Width: 1855
+  X: 1665
   Y: 24
