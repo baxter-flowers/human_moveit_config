@@ -15,7 +15,7 @@
 
   <!-- move_group settings -->
   <arg name="allow_trajectory_execution" default="true"/>
-  <arg name="fake_execution" default="true"/>
+  <arg name="fake_execution" default="false"/>
   <arg name="max_safe_path_cost" default="1"/>
   <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="true"/>
@@ -66,6 +66,7 @@
     <param name="planning_scene_monitor/publish_transforms_updates" value="$(arg publish_monitored_planning_scene)" />
   </node>
 
- <!-- <node name="human_ik_srv" pkg="human_moveit_config" type="human_ik_srv"/> -->
+  <!-- <node name="human_ik_srv" pkg="human_moveit_config" type="human_ik_srv"/> -->
   <node name="jacobian_server" pkg="human_moveit_config" type="jacobian_server"/>
+
 </launch>
