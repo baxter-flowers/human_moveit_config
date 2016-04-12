@@ -7,10 +7,9 @@ Panels:
         - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.74256
-    Tree Height: 156
+    Tree Height: 197
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -66,20 +65,26 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           head:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          head_tip:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           hip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           left_ankle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_ankle_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -87,6 +92,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          left_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           left_elbow_0:
             Alpha: 1
             Show Axes: false
@@ -95,25 +105,15 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          left_foot_tip:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          left_forearm:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           left_hand:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          left_hand_tip:
+          left_hip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           left_hip_0:
             Alpha: 1
             Show Axes: false
@@ -122,11 +122,16 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          left_knee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           left_leg_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          left_shin:
+          left_shoulder:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -139,12 +144,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          left_thigh:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          left_upper_arm:
+          left_wrist:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -153,6 +153,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          neck:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           neck_0:
             Alpha: 1
             Show Axes: false
@@ -165,10 +170,20 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
+          right_ankle_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           right_arm_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          right_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           right_elbow_0:
             Alpha: 1
             Show Axes: false
@@ -177,25 +192,15 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          right_foot_tip:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          right_forearm:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           right_hand:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          right_hand_tip:
+          right_hip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           right_hip_0:
             Alpha: 1
             Show Axes: false
@@ -204,11 +209,16 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          right_knee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           right_leg_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          right_shin:
+          right_shoulder:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -221,12 +231,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          right_thigh:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          right_upper_arm:
+          right_wrist:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -235,15 +240,12 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          spine_0:
+          shoulder_center:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          spine_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          torso:
+            Value: true
+          spine:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -253,6 +255,14 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          waist_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          waist_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
         Loop Animation: true
         Robot Alpha: 0.5
         Show Robot Collision: false
@@ -296,20 +306,26 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           head:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          head_tip:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           hip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           left_ankle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_ankle_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -317,6 +333,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          left_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           left_elbow_0:
             Alpha: 1
             Show Axes: false
@@ -325,25 +346,15 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          left_foot_tip:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          left_forearm:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           left_hand:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          left_hand_tip:
+          left_hip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           left_hip_0:
             Alpha: 1
             Show Axes: false
@@ -352,11 +363,16 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          left_knee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           left_leg_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          left_shin:
+          left_shoulder:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -369,12 +385,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          left_thigh:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          left_upper_arm:
+          left_wrist:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -383,6 +394,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          neck:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           neck_0:
             Alpha: 1
             Show Axes: false
@@ -395,10 +411,20 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
+          right_ankle_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           right_arm_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          right_elbow:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           right_elbow_0:
             Alpha: 1
             Show Axes: false
@@ -407,25 +433,15 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          right_foot_tip:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          right_forearm:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           right_hand:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          right_hand_tip:
+          right_hip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           right_hip_0:
             Alpha: 1
             Show Axes: false
@@ -434,11 +450,16 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          right_knee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           right_leg_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          right_shin:
+          right_shoulder:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -451,12 +472,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          right_thigh:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          right_upper_arm:
+          right_wrist:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -465,15 +481,12 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          spine_0:
+          shoulder_center:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          spine_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          torso:
+            Value: true
+          spine:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -483,6 +496,14 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          waist_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          waist_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
         Robot Alpha: 0.7
         Show Robot Collision: false
         Show Robot Visual: true
@@ -492,147 +513,161 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base:
+          Value: false
         head:
-          Value: true
-        head_tip:
-          Value: true
+          Value: false
         hip:
-          Value: true
+          Value: false
         left_ankle:
-          Value: true
+          Value: false
+        left_ankle_0:
+          Value: false
         left_arm_mount:
-          Value: true
+          Value: false
+        left_elbow:
+          Value: false
         left_elbow_0:
-          Value: true
+          Value: false
         left_foot:
-          Value: true
-        left_foot_tip:
-          Value: true
-        left_forearm:
-          Value: true
+          Value: false
         left_hand:
-          Value: true
-        left_hand_tip:
-          Value: true
+          Value: false
+        left_hip:
+          Value: false
         left_hip_0:
-          Value: true
+          Value: false
         left_hip_1:
-          Value: true
+          Value: false
+        left_knee:
+          Value: false
         left_leg_mount:
-          Value: true
-        left_shin:
-          Value: true
+          Value: false
+        left_shoulder:
+          Value: false
         left_shoulder_0:
-          Value: true
+          Value: false
         left_shoulder_1:
-          Value: true
-        left_thigh:
-          Value: true
-        left_upper_arm:
-          Value: true
+          Value: false
+        left_wrist:
+          Value: false
         left_wrist_0:
-          Value: true
+          Value: false
+        neck:
+          Value: false
         neck_0:
-          Value: true
+          Value: false
         neck_1:
-          Value: true
+          Value: false
         right_ankle:
-          Value: true
+          Value: false
+        right_ankle_0:
+          Value: false
         right_arm_mount:
-          Value: true
+          Value: false
+        right_elbow:
+          Value: false
         right_elbow_0:
-          Value: true
+          Value: false
         right_foot:
-          Value: true
-        right_foot_tip:
-          Value: true
-        right_forearm:
-          Value: true
+          Value: false
         right_hand:
-          Value: true
-        right_hand_tip:
-          Value: true
+          Value: false
+        right_hip:
+          Value: false
         right_hip_0:
-          Value: true
+          Value: false
         right_hip_1:
-          Value: true
+          Value: false
+        right_knee:
+          Value: false
         right_leg_mount:
-          Value: true
-        right_shin:
-          Value: true
+          Value: false
+        right_shoulder:
+          Value: false
         right_shoulder_0:
-          Value: true
+          Value: false
         right_shoulder_1:
-          Value: true
-        right_thigh:
-          Value: true
-        right_upper_arm:
-          Value: true
+          Value: false
+        right_wrist:
+          Value: false
         right_wrist_0:
-          Value: true
-        spine_0:
-          Value: true
-        spine_1:
-          Value: true
-        torso:
-          Value: true
+          Value: false
+        shoulder_center:
+          Value: false
+        spine:
+          Value: false
         waist:
-          Value: true
+          Value: false
+        waist_0:
+          Value: false
+        waist_1:
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        hip:
+        base:
+          hip:
+            waist_0:
+              waist_1:
+                waist:
+                  spine:
+                    shoulder_center:
+                      left_arm_mount:
+                        left_shoulder_0:
+                          left_shoulder_1:
+                            left_shoulder:
+                              left_elbow_0:
+                                left_elbow:
+                                  left_wrist_0:
+                                    left_wrist:
+                                      left_hand:
+                                        {}
+                      neck_0:
+                        neck_1:
+                          neck:
+                            head:
+                              {}
+                      right_arm_mount:
+                        right_shoulder_0:
+                          right_shoulder_1:
+                            right_shoulder:
+                              right_elbow_0:
+                                right_elbow:
+                                  right_wrist_0:
+                                    right_wrist:
+                                      right_hand:
+                                        {}
           left_leg_mount:
             left_hip_0:
               left_hip_1:
-                left_thigh:
-                  left_shin:
-                    left_ankle:
-                      left_foot:
-                        left_foot_tip:
+                left_hip:
+                  left_knee:
+                    left_ankle_0:
+                      left_ankle:
+                        left_foot:
                           {}
           right_leg_mount:
             right_hip_0:
               right_hip_1:
-                right_thigh:
-                  right_shin:
-                    right_ankle:
-                      right_foot:
-                        right_foot_tip:
+                right_hip:
+                  right_knee:
+                    right_ankle_0:
+                      right_ankle:
+                        right_foot:
                           {}
-          waist:
-            spine_0:
-              spine_1:
-                torso:
-                  left_arm_mount:
-                    left_shoulder_0:
-                      left_shoulder_1:
-                        left_upper_arm:
-                          left_elbow_0:
-                            left_forearm:
-                              left_wrist_0:
-                                left_hand:
-                                  left_hand_tip:
-                                    {}
-                  neck_0:
-                    neck_1:
-                      head:
-                        head_tip:
-                          {}
-                  right_arm_mount:
-                    right_shoulder_0:
-                      right_shoulder_1:
-                        right_upper_arm:
-                          right_elbow_0:
-                            right_forearm:
-                              right_wrist_0:
-                                right_hand:
-                                  right_hand_tip:
-                                    {}
       Update Interval: 0
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: visualization_marker
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -649,36 +684,36 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.23441
+      Distance: 3.35707
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.66793
-        Y: -0.224242
-        Z: 4.76837e-07
+        X: -0.0395433
+        Y: 0.20476
+        Z: 5.96046e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.190398
+      Pitch: 0.219797
       Target Frame: hip
       Value: ThirdPersonFollower (rviz)
-      Yaw: 0.00722045
+      Yaw: 1.56722
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: false
+    collapsed: true
   Height: 1056
   Help:
     collapsed: false
-  Hide Left Dock: false
+  Hide Left Dock: true
   Hide Right Dock: false
   Motion Planning:
-    collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003dafc0200000005fb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073010000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001c100000241000001ab00ffffff00000488000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+    collapsed: true
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003dafc0200000005fb000000100044006900730070006c006100790073000000002800000106000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a005600690065007700730000000134000000cf000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670000000209000001f9000001ab00ffffff0000073f000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
-    collapsed: false
+    collapsed: true
   Width: 1855
   X: 1665
   Y: 24
