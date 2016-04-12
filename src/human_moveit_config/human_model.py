@@ -40,23 +40,24 @@ class HumanModel(object):
         self.end_effectors['whole_body'] = self.end_effectors['upper_body'] + self.end_effectors['lower_body']
         # initialize common links per group
         self.group_links = {}
-        self.group_links['head'] = ['torso', 'head_tip']
+        self.group_links['head'] = ['waist', 'spine', 'head']
         # fill the disct of active joints by links
         self.joint_by_links = {}
-        self.joint_by_links['torso'] = ['spine_0', 'spine_1', 'spine_2']
-        self.joint_by_links['head_tip'] = ['neck_0', 'neck_1', 'neck_2']
+        self.joint_by_links['waist'] = ['waist_0', 'waist_1', 'waist_2']
+        self.joint_by_links['spine'] = ['spine']
+        self.joint_by_links['head'] = ['neck_0', 'neck_1', 'neck_2']
         sides = ['right', 'left']
         for s in sides:
-            self.group_links[s+'_arm'] = [s+'_upper_arm', s+'_forearm', s+'_hand_tip']
-            self.group_links[s+'_leg'] = [s+'_thigh', s+'_shin', s+'_foot_tip']
+            self.group_links[s+'_arm'] = [s+'_shoulder', s+'_elbow', s+'_hand']
+            self.group_links[s+'_leg'] = [s+'_hip', s+'_knee', s+'_foot']
             # arm links
-            self.joint_by_links[s+'_upper_arm'] = [s+'_shoulder_0', s+'_shoulder_1', s+'_shoulder_2']
-            self.joint_by_links[s+'_forearm'] = [s+'_elbow_0', s+'_elbow_1']
-            self.joint_by_links[s+'_hand_tip'] = [s+'_wrist_0', s+'_wrist_1']
+            self.joint_by_links[s+'_shoulder'] = [s+'_shoulder_0', s+'_shoulder_1', s+'_shoulder_2']
+            self.joint_by_links[s+'_elbow'] = [s+'_elbow_0', s+'_elbow_1']
+            self.joint_by_links[s+'_hand'] = [s+'_wrist_0', s+'_wrist_1']
             # leg links
-            self.joint_by_links[s+'_thigh'] = [s+'_hip_0', s+'_hip_1', s+'_hip_2']
-            self.joint_by_links[s+'_shin'] = [s+'_knee']
-            self.joint_by_links[s+'_foot_tip'] = [s+'_ankle_0', s+'_ankle_1']
+            self.joint_by_links[s+'_hip'] = [s+'_hip_0', s+'_hip_1', s+'_hip_2']
+            self.joint_by_links[s+'_knee'] = [s+'_knee']
+            self.joint_by_links[s+'_foot'] = [s+'_ankle_0', s+'_ankle_1']
 
     def get_group_of_link(self, link):
         for key, value in self.group_links.iteritems():
