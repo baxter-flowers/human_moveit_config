@@ -14,18 +14,19 @@ from human_moveit_config.srv import GetHumanIK
 
 
 class HumanModel(object):
-    def __init__(self):
-        self.robot_commander = moveit_commander.RobotCommander()
+    def __init__(self, description='human_description'):
+        self.description = description
+        self.robot_commander = moveit_commander.RobotCommander(description)
         self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
         self.groups = {}
-        self.groups['head'] = moveit_commander.MoveGroupCommander('Head')
-        self.groups['right_arm'] = moveit_commander.MoveGroupCommander('RightArm')
-        self.groups['left_arm'] = moveit_commander.MoveGroupCommander('LeftArm')
-        self.groups['right_leg'] = moveit_commander.MoveGroupCommander('RightLeg')
-        self.groups['left_leg'] = moveit_commander.MoveGroupCommander('LeftLeg')
-        self.groups['upper_body'] = moveit_commander.MoveGroupCommander('UpperBody')
-        self.groups['lower_body'] = moveit_commander.MoveGroupCommander('LowerBody')
-        self.groups['whole_body'] = moveit_commander.MoveGroupCommander('WholeBody')
+        self.groups['head'] = moveit_commander.MoveGroupCommander('Head', description)
+        self.groups['right_arm'] = moveit_commander.MoveGroupCommander('RightArm', description)
+        self.groups['left_arm'] = moveit_commander.MoveGroupCommander('LeftArm', description)
+        self.groups['right_leg'] = moveit_commander.MoveGroupCommander('RightLeg', description)
+        self.groups['left_leg'] = moveit_commander.MoveGroupCommander('LeftLeg', description)
+        self.groups['upper_body'] = moveit_commander.MoveGroupCommander('UpperBody', description)
+        self.groups['lower_body'] = moveit_commander.MoveGroupCommander('LowerBody', description)
+        self.groups['whole_body'] = moveit_commander.MoveGroupCommander('WholeBody', description)
         # initialize end-effectors dict
         self.end_effectors = {}
         # fill both dict
@@ -190,7 +191,7 @@ class HumanModel(object):
         if joint_names is None:
             js = self.get_current_state()
             joint_names = js.name
-        xml_urdf = rospy.get_param('robot_description')
+        xml_urdf = rospy.get_param(self.description)
         dict_urdf = xmltodict.parse(xml_urdf)
         joints_urdf = []
         joints_urdf.append([j['@name'] for j in dict_urdf['robot']['joint'] if j['@name'] in joint_names])
