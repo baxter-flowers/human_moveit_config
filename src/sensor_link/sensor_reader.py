@@ -104,10 +104,6 @@ class SensorReader(object):
                         'torso_radius': shoulder_offset,  # TODO
                         'neck_radius': 0.04,  # TODO
                         'head_radius': 0.1}    # TODO
-
-        print self.lengths
-        print '---------------------'
-
         # set the lengths on the parameter server
         rospy.set_param('/kinect/human_lengths', self.lengths)
 

@@ -9,7 +9,7 @@ import transformations
 class SensorCalibrator(object):
     def __init__(self):
         # create human model
-        # 1self.human = HumanModel()
+        self.human = None
         self.fk = {}
 
     def extract_transforms(self, flat_transforms):
@@ -34,6 +34,7 @@ class SensorCalibrator(object):
             return C
 
         def distance_cost(pose1, pose2):
+            pos_cost = 0
             # calculate position ditance
             pos_cost = np.linalg.norm(np.array(pose1[0])-np.array(pose2[0]))
             # distance between two quaternions
@@ -46,29 +47,30 @@ class SensorCalibrator(object):
         # first extract the transformations
         list_calibr = self.extract_transforms(calibrations)
         # collect the cost based on the quaternions
-        cost = quaternion_cost(1)
-        # set the hip transform
-        hip_transform = list_calibr[0]
+        cost = quaternion_cost(0.5)
+        # set the base transform
+        base_transform = list_calibr[0]
         # loop trough all the transforms
         for i in range(1, len(list_calibr)):
             key = self.keys[i]
             # get the fk
             fk = self.fk[key]
             # compute the corresponding transformation from recorded data
-            pose = transformations.multiply_transform(hip_transform, self.recorded_poses[key])
-            pose = transformations.multiply_transform(pose, transformations.inverse_transform(list_calibr[i]))
+            pose = transformations.multiply_transform(base_transform, self.recorded_poses[key])
+            pose = transformations.multiply_transform(pose, list_calibr[i])
             # compute the cost based on the distance
             cost += distance_cost(fk, pose)
 
         print cost
         return cost
 
-    def calibrate(self, record):
+    def calibrate(self, record, light_calibration=False):
         def random_transforms(pos_bounds, rot_bounds):
             flat_transforms = []
             for key in self.keys:
                 # add a random position within bounds
-                flat_transforms += np.random.uniform(pos_bounds[0], pos_bounds[1], 3).tolist()
+                # flat_transforms += np.random.uniform(pos_bounds[0], pos_bounds[1], 3).tolist()
+                flat_transforms += [0, 0, 0]
                 # add a random quaternion
                 rot = np.random.uniform(rot_bounds[0], rot_bounds[1], 4)
                 flat_transforms += (rot/np.linalg.norm(rot)).tolist()
@@ -79,12 +81,15 @@ class SensorCalibrator(object):
         js = self.human.get_initial_state()
         self.fk = self.human.forward_kinematic(js, links='all')
         self.keys = record.keys()
-        # remove the hip from the list to put in first position
-        self.keys.remove('waist')
-        self.keys = ['waist'] + self.keys
+        if light_calibration:
+            self.keys = ['base', 'head', 'right_hand', 'left_hand']
+        else:
+            # remove the hip from the list to put in first position
+            self.keys.remove('base')
+            self.keys = ['base'] + self.keys
         # set limits for search space
         bounds = []
-        pos_bounds = [-0.5, 0.5]
+        pos_bounds = [-0.05, 0.05]
         rot_bounds = [-1, 1]
         for key in self.keys:
             for i in range(3):
@@ -103,7 +108,10 @@ class SensorCalibrator(object):
         list_transforms = self.extract_transforms(res.x)
         res_calibr = {}
         for i in range(len(self.keys)):
-            res_calibr[self.keys[i]] = list_transforms[i]
-        print res_calibr
-
+            pos = list_transforms[i][0].tolist()
+            rot = list_transforms[i][1].tolist()
+            res_calibr[self.keys[i]] = [pos, rot]
+        # invert base transformation to get them all in the same order
+        pose = transformations.inverse_transform(res_calibr['base'])
+        res_calibr['base'] = [pose[0], pose[1].tolist()]
         return res_calibr

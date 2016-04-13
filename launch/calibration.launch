@@ -1,15 +1,8 @@
 <launch>
-    <arg name="ip" default="127.0.0.1" /> <!-- IP of the VRPN server (like Motive or Arena) -->
-    <arg name="port" default="3883" /> <!-- Port of the VRPN server (default 3883) -->
     <arg name="name" default="human" />
-    <arg name="use_timer" default="True" />
     <param name="human/person_name" type="string" value="$(arg name)" />
-    
-    <include file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" >
-      <arg name="ip" value="$(arg ip)"/> <!-- IP of the VRPN server (like Motive or Arena) -->
-      <arg name="port" value="$(arg port)"/> <!-- Port of the VRPN server (default 3883) -->
-      <arg name="num_skeletons" value="1"/>
-    </include>
 
-    <node name="human_calibration" pkg="human_moveit_config" type="generate_model" output="screen" args="$(arg use_timer)" required="true"/>
+    <include file="$(find human_moveit_config)/launch/demo.launch"/>
+
+    <node name="sensor_calibration" pkg="human_moveit_config" type="sensor_calibration" output="screen" required="true"/>
 </launch>

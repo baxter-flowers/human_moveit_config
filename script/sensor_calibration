@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+from human_moveit_config.human_model import HumanModel
+from sensor_link.sensor_calibrator import SensorCalibrator
+import rospy
+import rospkg
+import json
+
+
+class Calibrator(object):
+    def __init__(self):
+        self.rospack = rospkg.RosPack()
+        self.sensor_calibr = SensorCalibrator()
+        self.sensor_calibr.human = HumanModel()
+
+    def create_calibration_matrices(self, light_calibration):
+        skeleton_file = self.rospack.get_path("human_moveit_config")+'/tmp/skeleton.json'
+        # read the T pose from human
+        with open(skeleton_file) as data_file:
+            data_skeletons = json.load(data_file)
+        # for all the recorded skeletons calibrate the transformation matrices
+        dict_calibr = {}
+        for key, value in data_skeletons.iteritems():
+            if value:
+                dict_calibr[key] = self.sensor_calibr.calibrate(value, light_calibration)
+        # write the calibration file
+        if light_calibration:
+            filename = self.rospack.get_path("human_moveit_config")+"/config/light_calibration.json"
+        else:
+            filename = self.rospack.get_path("human_moveit_config")+"/config/full_calibration.json"
+        with open(filename, 'w') as output_file:
+            json.dump(dict_calibr, output_file, sort_keys=True, indent=4)
+
+if __name__ == '__main__':
+    rospy.init_node('sensor_calibrator')
+    calibrator = Calibrator()
+    # create URDF file
+    person_name = str(rospy.get_param('/human/person_name'))
+    # create calibration matrices from human model
+    calibrator.create_calibration_matrices(True)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from sensor_link.sensor_calibrator import SensorCalibrator
 from sensor_link.sensor_reader import SensorReader
 import rospy
 import rospkg
@@ -14,7 +13,6 @@ class ModelGenerator(object):
         self.use_timer = use_timer
         self.rospack = rospkg.RosPack()
         self.sensor = SensorReader(False)
-        self.sensor_calibr = SensorCalibrator()
 
     def request_for_t_position(self):
         while not rospy.is_shutdown():
@@ -29,9 +27,9 @@ class ModelGenerator(object):
             else:
                 rospy.logerr("Cannot calibrate, skeleton not visible")
         # save the recorded T pose
-        filename = '/tmp/skeleton.json'
+        filename = self.rospack.get_path("human_moveit_config")+'/tmp/skeleton.json'
         with open(filename, 'w') as output_file:
-            json.dump(self.sensor.skeletons['kinect'], output_file, sort_keys=True, indent=4)
+            json.dump(self.sensor.skeletons, output_file, sort_keys=True, indent=4)
 
     def create_urdf(self, output_filename=None, output_param='/human_description'):
         str_lengths = {k: str(v) for k, v in self.sensor.lengths.iteritems()}
@@ -46,7 +44,7 @@ class ModelGenerator(object):
         rospy.set_param(output_param, document.toprettyxml(indent='  '))
 
         # save the model under the user name if specified
-        if output_filename is not None:
+        if output_filename is not None and output_filename != 'human':
             with open(output_filename, 'w') as f:
                 f.write(document.toprettyxml(indent='  '))
         # also overwrite current human model for moveit
@@ -64,7 +62,7 @@ class ModelGenerator(object):
         print dict_calibr
 
 if __name__ == '__main__':
-    rospy.init_node('kinect_skeleton_calibrator')
+    rospy.init_node('model_generator')
     generator = ModelGenerator(sys.argv[1] == 'True')
     # record skeleton data
     generator.request_for_t_position()
