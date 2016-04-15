@@ -1,0 +1,10 @@
+{
+	"kinect":{
+		"light": ["base", "head", "left_shoulder", "left_hand", "right_shoulder", "right_hand"],
+		"full": "all"
+	},
+	"optitrack": {
+		"right": ["base", "head", "right_hand"],
+		"left": ["base", "spine", "head", "left_shoulder", "left_elbow", "left_hand"]
+	}
+}

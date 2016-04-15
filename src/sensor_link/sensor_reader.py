@@ -36,6 +36,11 @@ class SensorReader(object):
         for key, value in self.skel_data.iteritems():
             self.skeletons[sensor_key][key] = value[1]
 
+    def get_skeleton(self, sensor_key):
+        self.copy_skeleton(sensor_key)
+        skel = self.skeletons[sensor_key]
+        return skel
+
     def calibrate(self):
         self.skeletons = {}
         for s in self.sensors:
@@ -52,11 +57,13 @@ class SensorReader(object):
 
     def calibration_matrices(self, d):
         mat_dict = {}
+        self.calibrated_frames_set = set()
         for namespace, dico in d.iteritems():
             mat_dict[namespace] = {}
             for key, value in dico.iteritems():
                 mat_dict[namespace][key] = value
                 mat_dict[namespace][key+'/inv'] = transformations.inverse_transform(value)
+                self.calibrated_frames_set.add(key)
         return mat_dict
 
     def generate_model_from_kinect(self):
@@ -107,7 +114,7 @@ class SensorReader(object):
         # set the lengths on the parameter server
         rospy.set_param('/kinect/human_lengths', self.lengths)
 
-    def update_skeleton(self, sensors=None):
+    def update_skeleton(self, sensors='all'):
         def update_frame(target, prefix):
             base = 'base'
             # loop through all the prefixes
@@ -120,7 +127,6 @@ class SensorReader(object):
                             frame = self.tfl.lookupTransform('/'+b_pref+'/human/'+base,
                                                              '/'+t_pref+'/human/'+target,
                                                              time)
-                            self.skel_data[target] = [t_pref, frame]
                             # multiply each transformation by the calibration matrix
                             if self.calibrated:
                                 dot_prod = transformations.multiply_transform(self.calibration[b_pref][base+'/inv'],
@@ -128,23 +134,26 @@ class SensorReader(object):
                                 dot_prod = transformations.multiply_transform(dot_prod,
                                                                               self.calibration[t_pref][target])
                                 self.skel_data[target] = [t_pref, dot_prod]
+                            else:
+                                self.skel_data[target] = [t_pref, frame]
                             return True
             return False
 
         def update_base_frame(prefix):
             for pref in prefix:
-                if self.tfl.canTransform(pref+'_frame', pref+'/human/base', rospy.Time(0)):
-                    time = self.tfl.getLatestCommonTime('kinect_frame', pref+'/human/base')
+                if self.tfl.canTransform('/'+pref+'_frame', '/'+pref+'/human/base', rospy.Time(0)):
+                    time = self.tfl.getLatestCommonTime('/'+pref+'_frame', '/'+pref+'/human/base')
                     if rospy.Time.now() - time < rospy.Duration(0.5):
                         frame = self.tfl.lookupTransform('/'+pref+'_frame',
                                                          '/'+pref+'/human/base',
                                                          time)
-                        self.skel_data['base'] = [pref, frame]
                         # multiply with the calibration
                         if self.calibrated:
                             dot_prod = transformations.multiply_transform(frame,
                                                                           self.calibration[pref]['base'])
                             self.skel_data['base'] = [pref, dot_prod]
+                        else:
+                            self.skel_data['base'] = [pref, frame]
                         return True
             return False
 
@@ -153,18 +162,20 @@ class SensorReader(object):
         self.skel_data = {}
         # check sensor usage
         if sensors is not list:
-            if sensors is 'all':
+            if sensors == 'all':
                 # use all possible sensors
                 sensors = self.sensors
             else:
                 sensors = [sensors]
         # get the union of frames based on the sensors
-        list_frames = []
+        set_frames = set()
         for s in sensors:
-            list_frames += self.sensor_frames[s]
-        list_frames = list(set(list_frames))
+            set_frames.update(self.sensor_frames[s])
+        # get the intersection with the calibrated matrices
+        if self.calibrated:
+            set_frames = set.intersection(set_frames, self.calibrated_frames_set)
         # loop through all the possible frames
-        for frame in list_frames:
+        for frame in set_frames:
             visible = (visible and update_frame(frame, prefix=sensors))
         # update base pose
         visible = (visible and update_base_frame(prefix=sensors))

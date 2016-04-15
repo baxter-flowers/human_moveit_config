@@ -1,33 +1,86 @@
 #!/usr/bin/env python
 from human_moveit_config.human_model import HumanModel
 from sensor_link.sensor_calibrator import SensorCalibrator
+from sensor_link.sensor_reader import SensorReader
 import rospy
 import rospkg
 import json
+import os
+import sys
 
 
 class Calibrator(object):
     def __init__(self):
         self.rospack = rospkg.RosPack()
+        self.sensor_reader = SensorReader(False)
         self.sensor_calibr = SensorCalibrator()
         self.sensor_calibr.human = HumanModel()
 
-    def create_calibration_matrices(self, light_calibration):
+    def request_for_t_position(self, sensor, frames_list):
+        # modify the list of visible frames
+        self.sensor_reader.sensor_frames[sensor] = frames_list
+        while not rospy.is_shutdown():
+            rospy.sleep(10)
+            os.system('beep')
+            # raw_input("User in T position, press <Enter> when ready...")
+            if self.sensor_reader.update_skeleton(sensor):
+                rospy.loginfo("T pose recorded successfully")
+                break
+            else:
+                rospy.logerr("Cannot calibrate, skeleton not visible")
+        # extract skeleton corresponding to sensor
+        skel = self.sensor_reader.get_skeleton(sensor)
+        # save the recorded T pose
         skeleton_file = self.rospack.get_path("human_moveit_config")+'/tmp/skeleton.json'
-        # read the T pose from human
-        with open(skeleton_file) as data_file:
-            data_skeletons = json.load(data_file)
-        # for all the recorded skeletons calibrate the transformation matrices
-        dict_calibr = {}
-        for key, value in data_skeletons.iteritems():
-            if value:
-                dict_calibr[key] = self.sensor_calibr.calibrate(value, light_calibration)
-        # write the calibration file
-        if light_calibration:
-            filename = self.rospack.get_path("human_moveit_config")+"/config/light_calibration.json"
+        # check already existing file
+        if os.path.exists(skeleton_file):
+            with open(skeleton_file) as data_file:
+                skeletons = json.load(data_file)
+            # overwrite only new value
+            skeletons[sensor] = skel
+        with open(skeleton_file, 'w') as output_file:
+            json.dump(skeletons, output_file, sort_keys=True, indent=4)
+        # return the recorded skeleton
+        return skel
+
+    def create_calibration_matrices(self, sensor, sensor_param, reset_pose):
+        # read the config file with the selected frames
+        frames_file = self.rospack.get_path("human_moveit_config")+'/config/frames_list.json'
+        with open(frames_file) as data_file:
+            data_frames = json.load(data_file)
+        # check that parameter is correct
+        if sensor_param not in data_frames[sensor].keys():
+            rospy.logerr('Parameter unknown')
+            sys.exit(1)
+        frames_list = data_frames[sensor][sensor_param]
+        # check if we need to record a new pose
+        if reset_pose:
+            # record a new T pose
+            skeleton = self.request_for_t_position(sensor, frames_list)
         else:
-            filename = self.rospack.get_path("human_moveit_config")+"/config/full_calibration.json"
-        with open(filename, 'w') as output_file:
+            # otherwise use existing one
+            skeleton_file = self.rospack.get_path("human_moveit_config")+'/tmp/skeleton.json'
+            # read the T pose from human
+            with open(skeleton_file) as data_file:
+                skeleton = json.load(data_file)[sensor]
+            if not skeleton:
+                rospy.logwarn('No skeleton data were recorded. Record anyway')
+                skeleton = self.request_for_t_position(sensor, frames_list)
+        # for recorded skeleton calibrate the transformation matrices
+        dict_calibr = {}
+        # if the file already exist load it to overwrite previous values
+        calibration_file = self.rospack.get_path("human_moveit_config")+"/tmp/sensor_calibration.json"
+        if os.path.exists(calibration_file):
+            with open(calibration_file) as data_file:
+                dict_calibr = json.load(data_file)
+        # calibrate using optimization
+
+        print skeleton
+        print frames_list
+
+        dict_calibr[sensor] = self.sensor_calibr.calibrate(skeleton, frames=frames_list)
+        # write the calibration file
+        with open(calibration_file, 'w') as output_file:
             json.dump(dict_calibr, output_file, sort_keys=True, indent=4)
 
 if __name__ == '__main__':
@@ -36,4 +89,4 @@ if __name__ == '__main__':
     # create URDF file
     person_name = str(rospy.get_param('/human/person_name'))
     # create calibration matrices from human model
-    calibrator.create_calibration_matrices(True)
+    calibrator.create_calibration_matrices(sys.argv[1], sys.argv[2], sys.argv[3] == 'True')

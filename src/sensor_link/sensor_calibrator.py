@@ -64,7 +64,7 @@ class SensorCalibrator(object):
         print cost
         return cost
 
-    def calibrate(self, record, light_calibration=False):
+    def calibrate(self, record, frames='all'):
         def random_transforms(pos_bounds, rot_bounds):
             flat_transforms = []
             for key in self.keys:
@@ -80,13 +80,13 @@ class SensorCalibrator(object):
         # calculate the fk of the human model in T pose
         js = self.human.get_initial_state()
         self.fk = self.human.forward_kinematic(js, links='all')
-        self.keys = record.keys()
-        if light_calibration:
-            self.keys = ['base', 'head', 'right_hand', 'left_hand']
-        else:
+        if frames == 'all':
+            self.keys = record.keys()
             # remove the hip from the list to put in first position
             self.keys.remove('base')
             self.keys = ['base'] + self.keys
+        else:
+            self.keys = frames
         # set limits for search space
         bounds = []
         pos_bounds = [-0.05, 0.05]
