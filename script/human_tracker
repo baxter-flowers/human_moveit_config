@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+from sensor_link.sensor_reader import SensorReader
+import tf
+import rospkg
+import json
+import rospy
+
+
+class HumanTracker(object):
+    def __init__(self, rate=50):
+        self.rate = rospy.Rate(rate)
+        # initialize tf broadcaster
+        self.tfb = tf.TransformBroadcaster()
+        # import calibration matrices
+        self.rospack = rospkg.RosPack()
+        pkg_dir = self.rospack.get_path('human_moveit_config') + '/tmp/'
+        filename = pkg_dir + 'sensor_calibration.json'
+        with open(filename) as datafile:
+            sensor_calibration = json.load(datafile)
+        # set the calibration parameter
+        rospy.set_param('/human/calibration', sensor_calibration)
+        # create link with sensors
+        try:
+            self.sensor = SensorReader(calibrated=True)
+        except KeyError:
+            rospy.logerr("Please calibrate before running the human tracker")
+        else:
+            self.calibrated = True
+            rospy.loginfo("Skeleton is calibrated!")
+
+    def publish_skeleton(self):
+        # update the skeleton
+        self.sensor.update_skeleton()
+        skeleton = self.sensor.skel_data
+        if 'base' in skeleton.keys():
+            # get the transformation from sensor_frame to human base
+            frame = skeleton['base']
+            SensorTHuman = frame[1]
+            # publish it wrt to the sensor frame
+            self.tfb.sendTransform(SensorTHuman[0], SensorTHuman[1],
+                                   rospy.Time.now(), '/human/tracker/base', frame[0]+'_frame')
+            # loop through all the recorded frames
+            for key, value in skeleton.iteritems():
+                if key != 'base':
+                    # get the pose wrt to human base
+                    pose = value[1]
+                    self.tfb.sendTransform(pose[0], pose[1], rospy.Time.now(),
+                                           '/human/tracker/'+key, '/human/tracker/base')
+
+    def run(self):
+        while not rospy.is_shutdown():
+            self.publish_skeleton()
+            self.rate.sleep()
+
+if __name__ == '__main__':
+    rospy.init_node('human_tracker')
+    tracker = HumanTracker()
+    tracker.run()
