@@ -2,13 +2,11 @@
 import tf
 import transformations
 import rospy
-import rospkg
 import numpy as np
 
 
 class SensorReader(object):
     def __init__(self, calibrated=False):
-        self.rospack = rospkg.RosPack()
         self.tfl = tf.TransformListener()
         self.skel_data = {}
         self.lengths = {}
@@ -176,7 +174,9 @@ class SensorReader(object):
             set_frames = set.intersection(set_frames, self.calibrated_frames_set)
         # loop through all the possible frames
         for frame in set_frames:
-            visible = (visible and update_frame(frame, prefix=sensors))
+            frame_visible = update_frame(frame, prefix=sensors)
+            visible = (visible and frame_visible)
         # update base pose
-        visible = (visible and update_base_frame(prefix=sensors))
+        base_visible = update_base_frame(prefix=sensors)
+        visible = (visible and base_visible)
         return visible
