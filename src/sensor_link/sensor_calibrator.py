@@ -33,16 +33,13 @@ class SensorCalibrator(object):
                 C += norm_coeff*abs(np.linalg.norm(transform[1])-1)
             return C
 
-        def distance_cost(pose1, pose2):
+        def distance_cost(pose1, pose2, rot_coeff=2):
             pos_cost = 0
             # calculate position ditance
             pos_cost = np.linalg.norm(np.array(pose1[0])-np.array(pose2[0]))
             # distance between two quaternions
-            try:
-                rot_cost = math.acos(2*np.inner(pose1[1], pose2[1])**2-1)
-            except ValueError:
-                rot_cost = math.pi
-            return pos_cost + rot_cost
+            rot_cost = 1 - np.inner(pose1[1], pose2[1])**2
+            return pos_cost + rot_coeff*rot_cost
 
         # first extract the transformations
         list_calibr = self.extract_transforms(calibrations)
