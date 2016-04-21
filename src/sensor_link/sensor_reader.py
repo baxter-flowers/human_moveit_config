@@ -3,6 +3,7 @@ import tf
 import transformations
 import rospy
 import numpy as np
+import sys
 
 
 class SensorReader(object):
@@ -29,6 +30,9 @@ class SensorReader(object):
         self.sensor_frames['optitrack'] = ['head', 'spine', 'waist',
                                            'left_shoulder', 'left_elbow', 'left_hand',
                                            'right_shoulder', 'right_elbow', 'right_hand']
+
+    def set_sensor_frames(self, dict_frames):
+        self.sensor_frames = dict_frames
 
     def copy_skeleton(self, sensor_key):
         for key, value in self.skel_data.iteritems():

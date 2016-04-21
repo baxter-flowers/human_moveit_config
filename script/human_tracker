@@ -30,7 +30,7 @@ class HumanTracker(object):
 
     def publish_skeleton(self):
         # update the skeleton
-        self.sensor.update_skeleton()
+        self.sensor.update_skeleton('optitrack')
         skeleton = self.sensor.skel_data
         if 'base' in skeleton.keys():
             # get the transformation from sensor_frame to human base
@@ -46,6 +46,9 @@ class HumanTracker(object):
                     pose = value[1]
                     self.tfb.sendTransform(pose[0], pose[1], rospy.Time.now(),
                                            '/human/tracker/'+key, '/human/tracker/base')
+
+    def set_tracked_frames(self, dict_frames):
+        self.sensor.set_sensor_frames(dict_frames)
 
     def run(self):
         while not rospy.is_shutdown():

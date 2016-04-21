@@ -7,6 +7,7 @@ import rospkg
 import json
 import os
 import sys
+import tf
 
 
 class Calibrator(object):
@@ -15,6 +16,8 @@ class Calibrator(object):
         self.sensor_reader = SensorReader(False)
         self.sensor_calibr = SensorCalibrator()
         self.sensor_calibr.human = HumanModel()
+        self.tfl = tf.TransformListener()
+        rospy.sleep(1)
 
     def request_for_t_position(self, sensor, frames_list):
         # modify the list of visible frames
@@ -31,7 +34,7 @@ class Calibrator(object):
         # extract skeleton corresponding to sensor
         skel = self.sensor_reader.get_skeleton(sensor)
         # save the recorded T pose
-        skeleton_file = self.rospack.get_path("human_moveit_config")+'/tmp/skeleton.json'
+        skeleton_file = self.rospack.get_path("human_moveit_config") + '/tmp/skeleton.json'
         # check already existing file
         if os.path.exists(skeleton_file):
             with open(skeleton_file) as data_file:
@@ -45,7 +48,7 @@ class Calibrator(object):
 
     def create_calibration_matrices(self, sensor, sensor_param, reset_pose):
         # read the config file with the selected frames
-        frames_file = self.rospack.get_path("human_moveit_config")+'/config/frames_list.json'
+        frames_file = self.rospack.get_path("human_moveit_config") + '/config/frames_list.json'
         with open(frames_file) as data_file:
             data_frames = json.load(data_file)
         # check that parameter is correct
@@ -59,7 +62,7 @@ class Calibrator(object):
             skeleton = self.request_for_t_position(sensor, frames_list)
         else:
             # otherwise use existing one
-            skeleton_file = self.rospack.get_path("human_moveit_config")+'/tmp/skeleton.json'
+            skeleton_file = self.rospack.get_path("human_moveit_config") + '/tmp/skeleton.json'
             # read the T pose from human
             with open(skeleton_file) as data_file:
                 skeleton = json.load(data_file)[sensor]
@@ -68,8 +71,15 @@ class Calibrator(object):
                 skeleton = self.request_for_t_position(sensor, frames_list)
         # for recorded skeleton calibrate the transformation matrices
         dict_calibr = {}
+        # get ground axis
+        base_pose = self.tfl.lookupTransform(sensor + '_frame', 'base', rospy.Time(0))
+        q = base_pose[1]
+        z = [2 * (q[0] * q[2] + q[1] * q[3]),
+             2 * (q[1] * q[2] - q[0] * q[3]),
+             1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]]
+        self.sensor_calibr.set_ground_axis(z)
         # if the file already exist load it to overwrite previous values
-        calibration_file = self.rospack.get_path("human_moveit_config")+"/tmp/sensor_calibration.json"
+        calibration_file = self.rospack.get_path("human_moveit_config") + "/tmp/sensor_calibration.json"
         if os.path.exists(calibration_file):
             with open(calibration_file) as data_file:
                 dict_calibr = json.load(data_file)
