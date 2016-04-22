@@ -3,11 +3,14 @@ import tf
 import transformations
 import rospy
 import numpy as np
-import sys
+import json
+import rospkg
 
 
 class SensorReader(object):
     def __init__(self, calibrated=False):
+        rospack = rospkg.RosPack()
+        self.pkg_dir = rospack.get_path("human_moveit_config")
         self.tfl = tf.TransformListener()
         self.skel_data = {}
         self.lengths = {}
@@ -64,7 +67,7 @@ class SensorReader(object):
             mat_dict[namespace] = {}
             for key, value in dico.iteritems():
                 mat_dict[namespace][key] = value
-                mat_dict[namespace][key+'/inv'] = transformations.inverse_transform(value)
+                mat_dict[namespace][key + '/inv'] = transformations.inverse_transform(value)
                 self.calibrated_frames_set.add(key)
         return mat_dict
 
@@ -108,13 +111,16 @@ class SensorReader(object):
                         'hip_offset_width': hip_offset,
                         'hand_length': 0.1,    # TODO
                         'foot_length': 0.1,    # TODO
-                        'waist_radius': shoulder_offset-0.04,  # TODO
-                        'spine_radius': shoulder_offset-0.02,  # TODO
+                        'waist_radius': shoulder_offset - 0.04,  # TODO
+                        'spine_radius': shoulder_offset - 0.02,  # TODO
                         'torso_radius': shoulder_offset,  # TODO
                         'neck_radius': 0.04,  # TODO
                         'head_radius': 0.1}    # TODO
+        # write the length file
+        with open(self.pkg_dir + '/tmp/human_length.json', 'w') as outfile:
+            json.dump(self.lengths, outfile, sort_keys=True, indent=4)
         # set the lengths on the parameter server
-        rospy.set_param('/kinect/human_lengths', self.lengths)
+        rospy.set_param('/human/lengths', self.lengths)
 
     def update_skeleton(self, sensors='all'):
         def update_frame(target, prefix):

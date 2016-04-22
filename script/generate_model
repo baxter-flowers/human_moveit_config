@@ -27,7 +27,7 @@ class ModelGenerator(object):
             else:
                 rospy.logerr("Cannot calibrate, skeleton not visible")
         # create tmp folder if it does not exist
-        tmp_dir = self.rospack.get_path("human_moveit_config")+'/tmp/'
+        tmp_dir = self.rospack.get_path("human_moveit_config") + '/tmp/'
         if not os.path.isdir(tmp_dir):
             os.makedirs(tmp_dir)
         # save the recorded T pose
@@ -35,25 +35,25 @@ class ModelGenerator(object):
         with open(filename, 'w') as output_file:
             json.dump(self.sensor.skeletons, output_file, sort_keys=True, indent=4)
 
-    def create_urdf(self, output_filename=None, output_param='/human_description'):
+    def create_urdf(self, output_param='/human_description'):
         str_lengths = {k: str(v) for k, v in self.sensor.lengths.iteritems()}
         xacro.set_substitution_args_context(str_lengths)
 
-        with open(self.rospack.get_path("human_moveit_config")+"/urdf/xacro/human_skeleton.urdf.xacro") as f:
+        with open(self.rospack.get_path("human_moveit_config") + "/urdf/xacro/human_skeleton.urdf.xacro") as f:
             document = xacro.parse(f)
 
-        xacro.process_includes(document, self.rospack.get_path("human_moveit_config")+"/urdf/xacro")
+        xacro.process_includes(document, self.rospack.get_path("human_moveit_config") + "/urdf/xacro")
         xacro.eval_self_contained(document)
 
         rospy.set_param(output_param, document.toprettyxml(indent='  '))
 
-        # save the model under the user name if specified
-        if output_filename is not None and output_filename != 'human':
-            with open(output_filename, 'w') as f:
-                f.write(document.toprettyxml(indent='  '))
+        # save the model under tmp folder
+        output_filename = self.rospack.get_path("human_moveit_config") + "/tmp/human.urdf"
+        with open(output_filename, 'w') as f:
+            f.write(document.toprettyxml(indent='  '))
         # also overwrite current human model for moveit
         urdf_file = '/urdf/human.urdf'
-        output_urdf = self.rospack.get_path("human_moveit_config")+urdf_file
+        output_urdf = self.rospack.get_path("human_moveit_config") + urdf_file
         with open(output_urdf, 'w') as f:
             f.write(document.toprettyxml(indent='  '))
 
@@ -71,10 +71,4 @@ if __name__ == '__main__':
     # record skeleton data
     generator.request_for_t_position()
     # create URDF file
-    person_name = str(rospy.get_param('/human/person_name'))
-    if person_name is not 'human':
-        filename = "/urdf/models/"+person_name+'.urdf'
-        output_urdf = generator.rospack.get_path("human_moveit_config")+filename
-        generator.create_urdf(output_urdf)
-    else:
-        generator.create_urdf()
+    generator.create_urdf()
