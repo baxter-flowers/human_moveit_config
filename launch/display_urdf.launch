@@ -1,7 +1,6 @@
 <launch>
-	<arg name="model" />
 	<arg name="gui" default="False" />
-	<param name="human_description" textfile="$(find human_moveit_config)/urdf/models/$(arg model)" /> 
+	<param name="human_description" textfile="$(find human_moveit_config)/urdf/human.urdf" /> 
 	<param name="use_gui" value="$(arg gui)"/>
 	<param name="tf_prefix" type="string" value="/human" />
 	

@@ -92,7 +92,5 @@ class Calibrator(object):
 if __name__ == '__main__':
     rospy.init_node('sensor_calibrator')
     calibrator = Calibrator()
-    # create URDF file
-    person_name = str(rospy.get_param('/human/person_name'))
     # create calibration matrices from human model
     calibrator.create_calibration_matrices(sys.argv[1], sys.argv[2], sys.argv[3] == 'True')

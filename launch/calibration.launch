@@ -3,12 +3,9 @@
     <arg name="kinect_port" default="3883" /> <!-- Port of the kinect VRPN server (default 3883) -->
     <arg name="opt_ip" default="BAXTERFLOWERS.local" /> <!-- IP of the VRPN server (like Motive or Arena) -->
     <arg name="opt_port" default="3884" /> <!-- Port of the optitrack VRPN server (default 3884) -->
-    <arg name="name" default="human" />
     <arg name="sensor" default="kinect" />
     <arg name="parameter" default="full" />
     <arg name="reset_pose" default="False" />
-
-    <param name="human/person_name" type="string" value="$(arg name)" />
 
     <rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
     
