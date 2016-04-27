@@ -74,7 +74,7 @@ class HumanModel(object):
             res.append(joint_state.position[index])
         return res
 
-    def forward_kinematic(self, joint_state, group_name='whole_body', base='/hip', links=None):
+    def forward_kinematic(self, joint_state, group_name='whole_body', base='base', links=None):
         def compute_fk_client(joints):
             rospy.wait_for_service('compute_fk')
             try:

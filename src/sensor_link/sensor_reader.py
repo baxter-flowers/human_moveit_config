@@ -25,12 +25,12 @@ class SensorReader(object):
         self.init_sensor_frames()
 
     def init_sensor_frames(self):
-        self.sensor_frames['kinect'] = ['head', 'neck', 'shoulder_center', 'spine', 'waist',
+        self.sensor_frames['kinect'] = ['head', 'neck', 'shoulder_center', 'spine',
                                         'left_shoulder', 'left_elbow', 'left_wrist', 'left_hand',
                                         'right_shoulder', 'right_elbow', 'right_wrist', 'right_hand',
                                         'left_hip', 'left_knee', 'left_ankle', 'left_foot',
                                         'right_hip', 'right_knee', 'right_ankle', 'right_foot']
-        self.sensor_frames['optitrack'] = ['head', 'spine', 'waist',
+        self.sensor_frames['optitrack'] = ['head', 'spine',
                                            'left_shoulder', 'left_elbow', 'left_hand',
                                            'right_shoulder', 'right_elbow', 'right_hand']
 
@@ -74,7 +74,6 @@ class SensorReader(object):
     def generate_model_from_kinect(self):
         kinect_data = self.skeletons['kinect']
         # extract frame positions
-        p_waist = np.array(kinect_data['waist'][0])
         p_spine = np.array(kinect_data['spine'][0])
         p_neck = np.array(kinect_data['neck'][0])
         p_head = np.array(kinect_data['head'][0])
@@ -90,32 +89,35 @@ class SensorReader(object):
         forearm_l = float(np.linalg.norm(p_wrist - p_elbow))
         torso_l = float(np.linalg.norm(p_neck - p_shoulder_center))
         spine_up_l = float(np.linalg.norm(p_shoulder_center - p_spine))
-        spine_down_l = float(np.linalg.norm(p_spine - p_waist))
-        waist_l = float(np.linalg.norm(p_waist))
+        spine_down_l = float(np.linalg.norm(p_spine))
         neck_l = float(np.linalg.norm(p_head - p_neck))
         thigh_l = float(np.linalg.norm(p_knee - p_hip))
         shin_l = float(np.linalg.norm(p_ankle - p_knee))
-        shoulder_offset = float(np.linalg.norm(p_shoulder - p_shoulder_center))
-        hip_offset = float(np.linalg.norm(p_hip))
+        shoulder_offset_w = float((p_shoulder - p_shoulder_center)[0])
+        shoulder_offset_h = float((p_shoulder - p_shoulder_center)[1])
+        hip_offset_w = float(p_hip[0])
+        hip_offset_h = float(abs(p_hip[1]))
         # set the disct of lengths for the urdf model
         self.lengths = {'upper_arm_length': upper_arm_l,
                         'forearm_length': forearm_l,
                         'torso_length': torso_l,
                         'spine_up_length': spine_up_l,
                         'spine_down_length': spine_down_l,
-                        'waist_length': waist_l,
                         'neck_length': neck_l,
                         'thigh_length': thigh_l,
                         'shin_length': shin_l,
-                        'shoulder_offset_width': shoulder_offset,
-                        'hip_offset_width': hip_offset,
+                        'shoulder_offset_width': shoulder_offset_w,
+                        'shoulder_offset_height': shoulder_offset_h,
+                        'hip_offset_height': hip_offset_h,
+                        'hip_offset_width': hip_offset_w,
                         'hand_length': 0.1,    # TODO
                         'foot_length': 0.1,    # TODO
-                        'waist_radius': shoulder_offset - 0.04,  # TODO
-                        'spine_radius': shoulder_offset - 0.02,  # TODO
-                        'torso_radius': shoulder_offset,  # TODO
+                        'spine_down_radius': shoulder_offset_w - 0.04,
+                        'spine_up_radius': shoulder_offset_w - 0.02,  # TODO
+                        'torso_radius': shoulder_offset_w,  # TODO
                         'neck_radius': 0.04,  # TODO
-                        'head_radius': 0.1}    # TODO
+                        'head_radius': 0.1,
+                        'thigh_radius': 0.05}    # TODO
         # write the length file
         with open(self.pkg_dir + '/tmp/human_length.json', 'w') as outfile:
             json.dump(self.lengths, outfile, sort_keys=True, indent=4)
