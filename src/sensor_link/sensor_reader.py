@@ -62,13 +62,14 @@ class SensorReader(object):
 
     def calibration_matrices(self, d):
         mat_dict = {}
-        self.calibrated_frames_set = set()
-        for namespace, dico in d.iteritems():
-            mat_dict[namespace] = {}
+        self.calibrated_frames_set = {}
+        for sensor, dico in d.iteritems():
+            mat_dict[sensor] = {}
+            self.calibrated_frames_set[sensor] = set()
             for key, value in dico.iteritems():
-                mat_dict[namespace][key] = value
-                mat_dict[namespace][key + '/inv'] = transformations.inverse_transform(value)
-                self.calibrated_frames_set.add(key)
+                mat_dict[sensor][key] = value
+                mat_dict[sensor][key + '/inv'] = transformations.inverse_transform(value)
+                self.calibrated_frames_set[sensor].add(key)
         return mat_dict
 
     def generate_model_from_kinect(self):
@@ -181,9 +182,9 @@ class SensorReader(object):
         set_frames = set()
         for s in sensors:
             set_frames.update(self.sensor_frames[s])
-        # get the intersection with the calibrated matrices
-        if self.calibrated:
-            set_frames = set.intersection(set_frames, self.calibrated_frames_set)
+            # get the intersection with the calibrated matrices
+            if self.calibrated:
+                set_frames = set.intersection(set_frames, self.calibrated_frames_set[s])
         # loop through all the possible frames
         for frame in set_frames:
             frame_visible = update_frame(frame, prefix=sensors)
