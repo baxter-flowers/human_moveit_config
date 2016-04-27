@@ -51,7 +51,6 @@
         <joint name="left_shoulder_1" value="0" />
         <joint name="left_shoulder_2" value="0" />
         <joint name="left_wrist_0" value="0" />
-        <joint name="left_wrist_1" value="0" />
         <joint name="neck_0" value="0" />
         <joint name="neck_1" value="0" />
         <joint name="neck_2" value="0" />
@@ -68,10 +67,9 @@
         <joint name="right_shoulder_2" value="0" />
         <joint name="right_wrist_0" value="0" />
         <joint name="right_wrist_1" value="0" />
-        <joint name="spine" value="0" />
-        <joint name="waist_0" value="0" />
-        <joint name="waist_1" value="0" />
-        <joint name="waist_2" value="0" />
+        <joint name="spine_0" value="0" />
+        <joint name="spine_1" value="0" />
+        <joint name="spine_2" value="0" />
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="right_hand" parent_link="base" group="RightArm" />
@@ -80,30 +78,25 @@
     <end_effector name="right_foot" parent_link="base" group="RightLeg" />
     <end_effector name="left_foot" parent_link="base" group="LeftLeg" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-    <disable_collisions link1="head" link2="hip" reason="Never" />
     <disable_collisions link1="head" link2="neck" reason="Adjacent" />
-    <disable_collisions link1="head" link2="spine" reason="Never" />
-    <disable_collisions link1="head" link2="waist" reason="Never" />
-    <disable_collisions link1="hip" link2="left_hip" reason="Adjacent" />
-    <disable_collisions link1="hip" link2="neck" reason="Never" />
-    <disable_collisions link1="hip" link2="right_hip" reason="Adjacent" />
-    <disable_collisions link1="hip" link2="shoulder_center" reason="Never" />
-    <disable_collisions link1="hip" link2="waist" reason="Adjacent" />
+    <disable_collisions link1="head" link2="spine_0" reason="Never" />
     <disable_collisions link1="left_ankle" link2="left_knee" reason="Adjacent" />
     <disable_collisions link1="left_elbow" link2="left_shoulder" reason="Adjacent" />
     <disable_collisions link1="left_elbow" link2="left_wrist" reason="Adjacent" />
     <disable_collisions link1="left_hip" link2="left_knee" reason="Adjacent" />
     <disable_collisions link1="left_hip" link2="right_hip" reason="Adjacent" />
+    <disable_collisions link1="left_hip" link2="spine_0" reason="Adjacent" />
     <disable_collisions link1="left_shoulder" link2="shoulder_center" reason="Adjacent" />
     <disable_collisions link1="neck" link2="shoulder_center" reason="Adjacent" />
     <disable_collisions link1="neck" link2="spine" reason="Never" />
-    <disable_collisions link1="neck" link2="waist" reason="Never" />
+    <disable_collisions link1="neck" link2="spine_0" reason="Never" />
     <disable_collisions link1="right_ankle" link2="right_knee" reason="Adjacent" />
     <disable_collisions link1="right_elbow" link2="right_shoulder" reason="Adjacent" />
     <disable_collisions link1="right_elbow" link2="right_wrist" reason="Adjacent" />
     <disable_collisions link1="right_hip" link2="right_knee" reason="Adjacent" />
+    <disable_collisions link1="right_hip" link2="spine_0" reason="Adjacent" />
     <disable_collisions link1="right_shoulder" link2="shoulder_center" reason="Adjacent" />
     <disable_collisions link1="shoulder_center" link2="spine" reason="Adjacent" />
-    <disable_collisions link1="shoulder_center" link2="waist" reason="Never" />
-    <disable_collisions link1="spine" link2="waist" reason="Adjacent" />
+    <disable_collisions link1="shoulder_center" link2="spine_0" reason="Never" />
+    <disable_collisions link1="spine" link2="spine_0" reason="Adjacent" />
 </robot>

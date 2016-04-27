@@ -46,7 +46,7 @@
     <!-- Joints -->
 
     <joint name="${side}_arm_mount" type="fixed">
-      <origin xyz="0 ${reflect*shoulder_offset_width} 0" rpy="0 0 ${reflect*PI_DIV_2}" />
+      <origin xyz="0 ${reflect*shoulder_offset_width} ${shoulder_offset_height}" rpy="0 0 ${reflect*PI_DIV_2}" />
       <parent link="shoulder_center" />
       <child link="${side}_arm_mount" />
     </joint>

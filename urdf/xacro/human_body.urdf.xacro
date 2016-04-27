@@ -4,37 +4,32 @@
 <xacro:include filename="props_global.urdf.xacro" />
  
 <xacro:macro name="human_body">
-	<link name="base"/>
-
-    <link name="hip">
+	  <link name="base">
       <visual>
-        <origin xyz="0 0 ${waist_length/2}" rpy="0 0 0" />
+        <origin xyz="0 0 ${-hip_offset_height/2}" rpy="0 0 0" />
         <geometry>
-          <!--<box size="0.4 0.2 ${waist_length}" />-->
-          <cylinder radius="${waist_radius}" length="${waist_length}" />
+          <cylinder radius="${hip_offset_width+thigh_radius}" length="${-hip_offset_height}" />
         </geometry>
       </visual>
     </link>
 
-    <link name="waist_0"/>
-    <link name="waist_1"/>
-    
-    <link name="waist">
+    <link name="spine_0">
       <visual>
         <origin xyz="0 0 ${spine_down_length/2}" rpy="0 0 0" />
         <geometry>
-          <!--<box size="0.4 0.2 ${torso_length}" />-->
-          <cylinder radius="${spine_radius}" length="${spine_down_length}" />
+          <cylinder radius="${spine_down_radius}" length="${spine_down_length}" />
         </geometry>
       </visual>
     </link>
+
+    <link name="spine_1"/>
+    <link name="spine_2"/>
 
     <link name="spine">
       <visual>
         <origin xyz="0 0 ${spine_up_length/2}" rpy="0 0 0" />
         <geometry>
-	        <!--<box size="0.4 0.2 ${torso_length}" />-->
-	        <cylinder radius="${spine_radius}" length="${spine_up_length}" />
+          <cylinder radius="${spine_up_radius}" length="${spine_up_length}" />
         </geometry>
       </visual>
     </link>
@@ -43,7 +38,6 @@
       <visual>
         <origin xyz="0 0 ${torso_length/2}" rpy="0 0 0" />
         <geometry>
-          <!--<box size="0.4 0.2 ${torso_length}" />-->
           <cylinder radius="${torso_radius}" length="${torso_length}" />
         </geometry>
       </visual>
@@ -56,7 +50,6 @@
       <visual>
         <origin xyz="0 0 ${neck_length/2}" rpy="0 0 0" />
         <geometry>
-          <!--<box size="0.4 0.2 ${torso_length}" />-->
           <cylinder radius="${neck_radius}" length="${neck_length}" />
         </geometry>
       </visual>
@@ -74,41 +67,33 @@
     <joint name="hip" type="fixed">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <parent link="base" />
-      <child link="hip" />
+      <child link="spine_0" />
     </joint>
 
     <!-- SPINE : spherical -->
-    <joint name="waist_0" type="revolute">
-      <origin xyz="0 0 ${waist_length}" rpy="0 0 0" />
+    <joint name="spine_0" type="revolute">
+      <origin xyz="0 0 ${spine_down_length}" rpy="0 0 0" />
       <axis xyz="1 0 0" />
-      <parent link="hip" />
-      <child link="waist_0" />
+      <parent link="spine_0" />
+      <child link="spine_1" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
     </joint>
 
-    <joint name="waist_1" type="revolute">
+    <joint name="spine_1" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <axis xyz="0 1 0" />
-      <parent link="waist_0" />
-      <child link="waist_1" />
+      <parent link="spine_1" />
+      <child link="spine_2" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
     </joint>
     
-    <joint name="waist_2" type="revolute">
+    <joint name="spine_2" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <axis xyz="0 0 1" />
-      <parent link="waist_1" />
-      <child link="waist" />
-      <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
-    </joint>
-
-    <joint name="spine" type="revolute">
-      <origin xyz="0 0 ${spine_down_length}" rpy="0 0 0" />
-      <axis xyz="0 1 0" />
-      <parent link="waist" />
+      <parent link="spine_2" />
       <child link="spine" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
-    </joint>    
+    </joint>
 
     <joint name="shoulder_center" type="fixed">
       <origin xyz="0 0 ${spine_up_length}" rpy="0 0 0" />

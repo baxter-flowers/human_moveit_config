@@ -147,22 +147,17 @@ joint_limits:
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  spine:
+  spine_0:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  waist_0:
+  spine_1:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  waist_1:
-    has_velocity_limits: true
-    max_velocity: 1
-    has_acceleration_limits: false
-    max_acceleration: 0
-  waist_2:
+  spine_2:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false

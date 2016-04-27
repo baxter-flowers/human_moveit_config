@@ -14,7 +14,7 @@
       <visual>
         <origin xyz="${thigh_length/2} 0 0" rpy="0 ${PI_DIV_2} 0" />
         <geometry>
-	        <cylinder radius="0.05" length="${thigh_length}" />
+	        <cylinder radius="${thigh_radius}" length="${thigh_length}" />
         </geometry>
       </visual>
     </link>
@@ -43,7 +43,7 @@
     <!-- Joints -->
 
     <joint name="${side}_hip_leg_mount" type="fixed">
-      <origin xyz="0 ${reflect*hip_offset_width} 0" rpy="0 ${PI_DIV_2} 0" />
+      <origin xyz="0 ${reflect*hip_offset_width} ${-hip_offset_height}" rpy="0 ${PI_DIV_2} 0" />
       <parent link="base" />
       <child link="${side}_leg_mount" />
     </joint>

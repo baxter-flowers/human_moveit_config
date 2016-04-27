@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
@@ -70,12 +71,8 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          head:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
             Value: true
-          hip:
+          head:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -251,16 +248,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          waist:
+          spine_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          waist_0:
+          spine_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          waist_1:
+          spine_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -311,12 +308,8 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          head:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
             Value: true
-          hip:
+          head:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -492,16 +485,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          waist:
+          spine_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          waist_0:
+          spine_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          waist_1:
+          spine_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -515,95 +508,93 @@ Visualization Manager:
       Frames:
         All Enabled: false
         base:
-          Value: false
+          Value: true
         head:
-          Value: false
-        hip:
-          Value: false
+          Value: true
         left_ankle:
-          Value: false
+          Value: true
         left_ankle_0:
-          Value: false
+          Value: true
         left_arm_mount:
-          Value: false
+          Value: true
         left_elbow:
-          Value: false
+          Value: true
         left_elbow_0:
-          Value: false
+          Value: true
         left_foot:
-          Value: false
+          Value: true
         left_hand:
-          Value: false
+          Value: true
         left_hip:
-          Value: false
+          Value: true
         left_hip_0:
-          Value: false
+          Value: true
         left_hip_1:
-          Value: false
+          Value: true
         left_knee:
-          Value: false
+          Value: true
         left_leg_mount:
-          Value: false
+          Value: true
         left_shoulder:
-          Value: false
+          Value: true
         left_shoulder_0:
-          Value: false
+          Value: true
         left_shoulder_1:
-          Value: false
+          Value: true
         left_wrist:
-          Value: false
+          Value: true
         left_wrist_0:
-          Value: false
+          Value: true
         neck:
-          Value: false
+          Value: true
         neck_0:
-          Value: false
+          Value: true
         neck_1:
-          Value: false
+          Value: true
         right_ankle:
-          Value: false
+          Value: true
         right_ankle_0:
-          Value: false
+          Value: true
         right_arm_mount:
-          Value: false
+          Value: true
         right_elbow:
-          Value: false
+          Value: true
         right_elbow_0:
-          Value: false
+          Value: true
         right_foot:
-          Value: false
+          Value: true
         right_hand:
-          Value: false
+          Value: true
         right_hip:
-          Value: false
+          Value: true
         right_hip_0:
-          Value: false
+          Value: true
         right_hip_1:
-          Value: false
+          Value: true
         right_knee:
-          Value: false
+          Value: true
         right_leg_mount:
-          Value: false
+          Value: true
         right_shoulder:
-          Value: false
+          Value: true
         right_shoulder_0:
-          Value: false
+          Value: true
         right_shoulder_1:
-          Value: false
+          Value: true
         right_wrist:
-          Value: false
+          Value: true
         right_wrist_0:
-          Value: false
+          Value: true
         shoulder_center:
-          Value: false
+          Value: true
         spine:
-          Value: false
-        waist:
-          Value: false
-        waist_0:
-          Value: false
-        waist_1:
-          Value: false
+          Value: true
+        spine_0:
+          Value: true
+        spine_1:
+          Value: true
+        spine_2:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -611,37 +602,6 @@ Visualization Manager:
       Show Names: true
       Tree:
         base:
-          hip:
-            waist_0:
-              waist_1:
-                waist:
-                  spine:
-                    shoulder_center:
-                      left_arm_mount:
-                        left_shoulder_0:
-                          left_shoulder_1:
-                            left_shoulder:
-                              left_elbow_0:
-                                left_elbow:
-                                  left_wrist_0:
-                                    left_wrist:
-                                      left_hand:
-                                        {}
-                      neck_0:
-                        neck_1:
-                          neck:
-                            head:
-                              {}
-                      right_arm_mount:
-                        right_shoulder_0:
-                          right_shoulder_1:
-                            right_shoulder:
-                              right_elbow_0:
-                                right_elbow:
-                                  right_wrist_0:
-                                    right_wrist:
-                                      right_hand:
-                                        {}
           left_leg_mount:
             left_hip_0:
               left_hip_1:
@@ -660,6 +620,36 @@ Visualization Manager:
                       right_ankle:
                         right_foot:
                           {}
+          spine_0:
+            spine_1:
+              spine_2:
+                spine:
+                  shoulder_center:
+                    left_arm_mount:
+                      left_shoulder_0:
+                        left_shoulder_1:
+                          left_shoulder:
+                            left_elbow_0:
+                              left_elbow:
+                                left_wrist_0:
+                                  left_wrist:
+                                    left_hand:
+                                      {}
+                    neck_0:
+                      neck_1:
+                        neck:
+                          head:
+                            {}
+                    right_arm_mount:
+                      right_shoulder_0:
+                        right_shoulder_1:
+                          right_shoulder:
+                            right_elbow_0:
+                              right_elbow:
+                                right_wrist_0:
+                                  right_wrist:
+                                    right_hand:
+                                      {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -673,7 +663,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: hip
+    Fixed Frame: base
     Frame Rate: 30
   Name: root
   Tools:
@@ -685,36 +675,36 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.2443
+      Distance: 1.8269
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.63982
-        Y: 0.267149
+        X: 1.35241
+        Y: 0.151713
         Z: 9.78275e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.219797
+      Pitch: 0.104797
       Target Frame: hip
       Value: ThirdPersonFollower (rviz)
-      Yaw: 6.26541
+      Yaw: 6.21541
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: true
-  Height: 1056
+    collapsed: false
+  Height: 917
   Help:
     collapsed: false
-  Hide Left Dock: true
+  Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
-    collapsed: true
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003dafc0200000005fb000000100044006900730070006c0061007900730000000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073000000010b000000cf000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006700000001e000000222000001ab00ffffff0000073f000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b10000034ffc0200000005fb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073010000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001c1000001b6000001ab00ffffff000003480000034f00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
-    collapsed: true
-  Width: 1855
-  X: 1665
+    collapsed: false
+  Width: 1535
+  X: 65
   Y: 24
