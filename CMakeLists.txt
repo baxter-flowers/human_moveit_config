@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_commander
   cmake_modules
   moveit_ros_planning_interface
+  message_generation
 )
 
 find_package(Eigen REQUIRED)
