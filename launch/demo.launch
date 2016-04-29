@@ -18,7 +18,7 @@
   <param name="human_description" textfile="$(find human_moveit_config)/urdf/human.urdf" /> 
 
   <!-- We do not have a robot connected, so publish fake joint states -->
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+  <node name="human_joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <remap from="robot_description" to="human_description" />
     <remap from="joint_states" to="/human/joint_states" />
     <param name="/use_gui" value="false"/>
@@ -26,7 +26,7 @@
   </node>
 
   <!-- Given the published joint states, publish tf for the robot links -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
+  <node name="human_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
     <remap from="robot_description" to="human_description" />
     <remap from="joint_states" to="/human/joint_states" />
   </node>
