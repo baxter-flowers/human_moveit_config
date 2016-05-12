@@ -30,7 +30,7 @@ class HumanTracker(object):
 
     def publish_skeleton(self):
         # update the skeleton
-        self.sensor.update_skeleton('optitrack')
+        self.sensor.update_skeleton('opt')
         skeleton = self.sensor.skel_data
         if 'base' in skeleton.keys():
             # get the transformation from sensor_frame to human base

@@ -18,7 +18,9 @@ class SensorReader(object):
         self.calibration = (self.calibration_matrices(rospy.get_param('/human/calibration'))
                             if self.calibrated else {})
         self.sensor_frames = {}
-        self.sensors = ['optitrack', 'kinect']
+        self.sensors = ['opt', 'kinect']
+        self.sensors_ref = {'opt': 'optitrack', 'kinect': 'kinect'}
+
         self.skeletons = {}
         for s in self.sensors:
             self.skeletons[s] = {}
@@ -30,9 +32,9 @@ class SensorReader(object):
                                         'right_shoulder', 'right_elbow', 'right_wrist', 'right_hand',
                                         'left_hip', 'left_knee', 'left_ankle', 'left_foot',
                                         'right_hip', 'right_knee', 'right_ankle', 'right_foot']
-        self.sensor_frames['optitrack'] = ['head', 'spine',
-                                           'left_shoulder', 'left_elbow', 'left_hand',
-                                           'right_shoulder', 'right_elbow', 'right_hand']
+        self.sensor_frames['opt'] = ['head', 'shoulder_center',
+                                     'left_elbow', 'left_hand',
+                                     'right_elbow', 'right_hand']
 
     def set_sensor_frames(self, dict_frames):
         self.sensor_frames = dict_frames
@@ -125,7 +127,7 @@ class SensorReader(object):
         # set the lengths on the parameter server
         rospy.set_param('/human/lengths', self.lengths)
 
-    def update_skeleton(self, sensors='all'):
+    def update_skeleton(self, sensors='all', debug=False):
         def update_frame(target, prefix):
             base = 'base'
             # loop through all the prefixes
@@ -148,15 +150,18 @@ class SensorReader(object):
                             else:
                                 self.skel_data[target] = [t_pref, frame]
                             return True
+            if debug:
+                rospy.logwarn(target + ' not visible')
             return False
 
         def update_base_frame(prefix):
             for pref in prefix:
-                if self.tfl.canTransform('/'+pref+'_frame', '/'+pref+'/human/base', rospy.Time(0)):
-                    time = self.tfl.getLatestCommonTime('/'+pref+'_frame', '/'+pref+'/human/base')
+                ref = '/' + self.sensors_ref[pref] + '_frame'
+                if self.tfl.canTransform(ref, '/' + pref + '/human/base', rospy.Time(0)):
+                    time = self.tfl.getLatestCommonTime(ref, '/' + pref + '/human/base')
                     if rospy.Time.now() - time < rospy.Duration(0.5):
-                        frame = self.tfl.lookupTransform('/'+pref+'_frame',
-                                                         '/'+pref+'/human/base',
+                        frame = self.tfl.lookupTransform(ref,
+                                                         '/' + pref + '/human/base',
                                                          time)
                         # multiply with the calibration
                         if self.calibrated:
@@ -166,6 +171,8 @@ class SensorReader(object):
                         else:
                             self.skel_data['base'] = [pref, frame]
                         return True
+            if debug:
+                rospy.logwarn('base not visible')
             return False
 
         visible = True

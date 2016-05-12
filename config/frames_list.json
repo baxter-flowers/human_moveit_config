@@ -3,8 +3,8 @@
 		"light": ["head", "left_shoulder", "left_hand", "right_shoulder", "right_hand"],
 		"full": "all"
 	},
-	"optitrack": {
-		"right": ["spine", "head", "right_hand", "left_hand"],
-		"left": ["spine", "head", "left_shoulder", "left_elbow", "left_hand"]
+	"opt": {
+		"light": ["shoulder_center", "head", "right_hand", "left_hand"],
+		"full": ["shoulder_center", "head", "left_elbow", "left_hand", "right_elbow", "right_hand"]
 	}
 }

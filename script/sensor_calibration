@@ -26,7 +26,7 @@ class Calibrator(object):
             rospy.sleep(10)
             os.system('beep')
             # raw_input("User in T position, press <Enter> when ready...")
-            if self.sensor_reader.update_skeleton(sensor):
+            if self.sensor_reader.update_skeleton(sensor, debug=True):
                 rospy.loginfo("T pose recorded successfully")
                 break
             else:
@@ -72,12 +72,17 @@ class Calibrator(object):
         # for recorded skeleton calibrate the transformation matrices
         dict_calibr = {}
         # get ground axis
-        base_pose = self.tfl.lookupTransform(sensor + '_frame', 'base', rospy.Time(0))
+        ref = self.sensor_reader.sensors_ref[sensor] + '_frame'
+        base_pose = self.tfl.lookupTransform(ref, 'base', rospy.Time(0))
         q = base_pose[1]
         z = [2 * (q[0] * q[2] + q[1] * q[3]),
              2 * (q[1] * q[2] - q[0] * q[3]),
              1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]]
+        x = [1 - 2 * q[1] * q[1] - 2 * q[2] * q[2],
+             2 * (q[0] * q[1] + q[2] * q[3]),
+             2 * (q[0] * q[2] - q[1] * q[3])]
         self.sensor_calibr.set_ground_axis(z)
+        self.sensor_calibr.set_robot_axis(x)
         # if the file already exist load it to overwrite previous values
         calibration_file = self.rospack.get_path("human_moveit_config") + "/tmp/sensor_calibration.json"
         if os.path.exists(calibration_file):

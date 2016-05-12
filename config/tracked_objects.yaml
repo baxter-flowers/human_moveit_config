@@ -1,9 +1,9 @@
 - /kinect_frame
-- /optitrack/human/base
-- /optitrack/human/head
-- /optitrack/human/spine
-- /optitrack/human/right_elbow
-- /optitrack/human/left_elbow
-- /optitrack/human/right_hand
-- /optitrack/human/left_hand
+- /opt/human/base
+- /opt/human/head
+- /opt/human/shoulder_center
+- /opt/human/right_elbow
+- /opt/human/left_elbow
+- /opt/human/right_hand
+- /opt/human/left_hand
 - /shapeo

@@ -10,10 +10,14 @@ class SensorCalibrator(object):
         # create human model
         self.human = None
         self.ground_axis = []
+        self.robot_axis = []
         self.fk = {}
 
     def set_ground_axis(self, axis):
         self.ground_axis = axis
+
+    def set_robot_axis(self, axis):
+        self.robot_axis = axis
 
     def extract_transforms(self, flat_transforms):
             # a transform is 3 pos and 4 rot
@@ -51,7 +55,8 @@ class SensorCalibrator(object):
                  2 * (q[1] * q[2] - q[0] * q[3]),
                  1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]]
             # check that the z base axis is normal to the ground
-            return abs(np.dot(z, self.ground_axis) - 1)
+            cost = abs(np.dot(z, self.ground_axis) - 1)
+            return cost
 
         # first extract the transformations
         list_calibr = self.extract_transforms(calibrations)
@@ -90,6 +95,18 @@ class SensorCalibrator(object):
                 flat_transforms += (rot / np.linalg.norm(rot)).tolist()
             return flat_transforms
 
+        def correct_base_guess(base_transform):
+            if base_transform == 0:
+                return False
+            q = base_transform[1]
+            # calculate x base axis from quaternion
+            x = [1 - 2 * q[1] * q[1] - 2 * q[2] * q[2],
+                 2 * (q[0] * q[1] + q[2] * q[3]),
+                 2 * (q[0] * q[2] - q[1] * q[3])]
+            # check that the base is facing the robot (cos < 0)
+            epsilon = -0.1
+            return np.dot(x, self.robot_axis) < epsilon
+
         self.recorded_poses = record
         # calculate the fk of the human model in T pose
         js = self.human.get_initial_state()
@@ -111,7 +128,11 @@ class SensorCalibrator(object):
             for i in range(4):
                 bounds.append(rot_bounds)
         # collect initial guess
-        initial_calibr = random_transforms(pos_bounds, rot_bounds)
+        base_guess = 0
+        while not correct_base_guess(base_guess):
+            initial_calibr = random_transforms(pos_bounds, rot_bounds)
+            base_guess = [initial_calibr[0:3], initial_calibr[3:7]]
+
         # find the optimized calibration
         res = opti.minimize(self._evaluate_calibration,
                             initial_calibr,
