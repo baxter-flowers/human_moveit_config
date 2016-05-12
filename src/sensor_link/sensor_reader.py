@@ -146,9 +146,9 @@ class SensorReader(object):
                                                                               frame)
                                 dot_prod = transformations.multiply_transform(dot_prod,
                                                                               self.calibration[t_pref][target])
-                                self.skel_data[target] = [t_pref, dot_prod]
+                                self.skel_data[target] = [self.sensors_ref[t_pref], dot_prod]
                             else:
-                                self.skel_data[target] = [t_pref, frame]
+                                self.skel_data[target] = [self.sensors_ref[t_pref], frame]
                             return True
             if debug:
                 rospy.logwarn(target + ' not visible')
@@ -167,9 +167,9 @@ class SensorReader(object):
                         if self.calibrated:
                             dot_prod = transformations.multiply_transform(frame,
                                                                           self.calibration[pref]['base'])
-                            self.skel_data['base'] = [pref, dot_prod]
+                            self.skel_data['base'] = [self.sensors_ref[pref], dot_prod]
                         else:
-                            self.skel_data['base'] = [pref, frame]
+                            self.skel_data['base'] = [self.sensors_ref[pref], frame]
                         return True
             if debug:
                 rospy.logwarn('base not visible')
