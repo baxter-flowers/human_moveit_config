@@ -507,93 +507,93 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base:
+        human/base:
           Value: true
-        head:
+        human/head:
           Value: true
-        left_ankle:
+        human/left_ankle:
           Value: true
-        left_ankle_0:
+        human/left_ankle_0:
           Value: true
-        left_arm_mount:
+        human/left_arm_mount:
           Value: true
-        left_elbow:
+        human/left_elbow:
           Value: true
-        left_elbow_0:
+        human/left_elbow_0:
           Value: true
-        left_foot:
+        human/left_foot:
           Value: true
-        left_hand:
+        human/left_hand:
           Value: true
-        left_hip:
+        human/left_hip:
           Value: true
-        left_hip_0:
+        human/left_hip_0:
           Value: true
-        left_hip_1:
+        human/left_hip_1:
           Value: true
-        left_knee:
+        human/left_knee:
           Value: true
-        left_leg_mount:
+        human/left_leg_mount:
           Value: true
-        left_shoulder:
+        human/left_shoulder:
           Value: true
-        left_shoulder_0:
+        human/left_shoulder_0:
           Value: true
-        left_shoulder_1:
+        human/left_shoulder_1:
           Value: true
-        left_wrist:
+        human/left_wrist:
           Value: true
-        left_wrist_0:
+        human/left_wrist_0:
           Value: true
-        neck:
+        human/neck:
           Value: true
-        neck_0:
+        human/neck_0:
           Value: true
-        neck_1:
+        human/neck_1:
           Value: true
-        right_ankle:
+        human/right_ankle:
           Value: true
-        right_ankle_0:
+        human/right_ankle_0:
           Value: true
-        right_arm_mount:
+        human/right_arm_mount:
           Value: true
-        right_elbow:
+        human/right_elbow:
           Value: true
-        right_elbow_0:
+        human/right_elbow_0:
           Value: true
-        right_foot:
+        human/right_foot:
           Value: true
-        right_hand:
+        human/right_hand:
           Value: true
-        right_hip:
+        human/right_hip:
           Value: true
-        right_hip_0:
+        human/right_hip_0:
           Value: true
-        right_hip_1:
+        human/right_hip_1:
           Value: true
-        right_knee:
+        human/right_knee:
           Value: true
-        right_leg_mount:
+        human/right_leg_mount:
           Value: true
-        right_shoulder:
+        human/right_shoulder:
           Value: true
-        right_shoulder_0:
+        human/right_shoulder_0:
           Value: true
-        right_shoulder_1:
+        human/right_shoulder_1:
           Value: true
-        right_wrist:
+        human/right_wrist:
           Value: true
-        right_wrist_0:
+        human/right_wrist_0:
           Value: true
-        shoulder_center:
+        human/shoulder_center:
           Value: true
-        spine:
+        human/spine:
           Value: true
-        spine_0:
+        human/spine_0:
           Value: true
-        spine_1:
+        human/spine_1:
           Value: true
-        spine_2:
+        human/spine_2:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -601,54 +601,54 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        base:
-          left_leg_mount:
-            left_hip_0:
-              left_hip_1:
-                left_hip:
-                  left_knee:
-                    left_ankle_0:
-                      left_ankle:
-                        left_foot:
+        human/base:
+          human/left_leg_mount:
+            human/left_hip_0:
+              human/left_hip_1:
+                human/left_hip:
+                  human/left_knee:
+                    human/left_ankle_0:
+                      human/left_ankle:
+                        human/left_foot:
                           {}
-          right_leg_mount:
-            right_hip_0:
-              right_hip_1:
-                right_hip:
-                  right_knee:
-                    right_ankle_0:
-                      right_ankle:
-                        right_foot:
+          human/right_leg_mount:
+            human/right_hip_0:
+              human/right_hip_1:
+                human/right_hip:
+                  human/right_knee:
+                    human/right_ankle_0:
+                      human/right_ankle:
+                        human/right_foot:
                           {}
-          spine_0:
-            spine_1:
-              spine_2:
-                spine:
-                  shoulder_center:
-                    left_arm_mount:
-                      left_shoulder_0:
-                        left_shoulder_1:
-                          left_shoulder:
-                            left_elbow_0:
-                              left_elbow:
-                                left_wrist_0:
-                                  left_wrist:
-                                    left_hand:
+          human/spine_0:
+            human/spine_1:
+              human/spine_2:
+                human/spine:
+                  human/shoulder_center:
+                    human/left_arm_mount:
+                      human/left_shoulder_0:
+                        human/left_shoulder_1:
+                          human/left_shoulder:
+                            human/left_elbow_0:
+                              human/left_elbow:
+                                human/left_wrist_0:
+                                  human/left_wrist:
+                                    human/left_hand:
                                       {}
-                    neck_0:
-                      neck_1:
-                        neck:
-                          head:
+                    human/neck_0:
+                      human/neck_1:
+                        human/neck:
+                          human/head:
                             {}
-                    right_arm_mount:
-                      right_shoulder_0:
-                        right_shoulder_1:
-                          right_shoulder:
-                            right_elbow_0:
-                              right_elbow:
-                                right_wrist_0:
-                                  right_wrist:
-                                    right_hand:
+                    human/right_arm_mount:
+                      human/right_shoulder_0:
+                        human/right_shoulder_1:
+                          human/right_shoulder:
+                            human/right_elbow_0:
+                              human/right_elbow:
+                                human/right_wrist_0:
+                                  human/right_wrist:
+                                    human/right_hand:
                                       {}
       Update Interval: 0
       Value: true
@@ -663,7 +663,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base
+    Fixed Frame: human/base
     Frame Rate: 30
   Name: root
   Tools:
@@ -695,14 +695,14 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 917
+  Height: 950
   Help:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b10000034ffc0200000005fb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073010000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001c1000001b6000001ab00ffffff000003480000034f00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b100000370fc0200000005fb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073010000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001c1000001d7000001cc00ffffff000003480000037000000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1535
