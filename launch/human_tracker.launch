@@ -1,9 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="kinect_ip" default="FLOWERS-DELL-1.local" /> <!-- IP of the VRPN server (like Motive or Arena) -->
-	<arg name="kinect_port" default="3883" /> <!-- Port of the kinect VRPN server (default 3883) -->
-	<arg name="opt_ip" default="BAXTERFLOWERS.local" /> <!-- IP of the VRPN server (like Motive or Arena) -->
-	<arg name="opt_port" default="3884" /> <!-- Port of the optitrack VRPN server (default 3884) -->
 	<arg name="use_kinect" default="True" />
 
 	<rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
@@ -11,17 +7,9 @@
 	<rosparam command="load" file="$(find human_moveit_config)/tmp/human_length.json" param="human/lengths"/>
 
 
-	<include if="$(arg use_kinect)" file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" >
-		<arg name="ip" value="$(arg kinect_ip)"/> <!-- IP of the VRPN server (like Motive or Arena) -->
-		<arg name="port" value="$(arg kinect_port)"/> <!-- Port of the VRPN server (default 3883) -->
-		<arg name="num_skeletons" value="1"/>
-	</include>
+	<include if="$(arg use_kinect)" file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" />
 
-	<include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" >
-		<arg name="ip" value="$(arg opt_ip)"/> <!-- IP of the VRPN server (like Motive or Arena) -->
-		<arg name="port" value="$(arg opt_port)"/> <!-- Port of the VRPN server (default 3883) -->
-		<arg name="output" value="log"/>
-	</include>
+	<include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" />
 
 	<node name="human_tracker" pkg="human_moveit_config" type="human_tracker" output="screen" required="true"/>
 </launch>
