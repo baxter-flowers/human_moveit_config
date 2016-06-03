@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 	<arg name="gui" default="False" />
 	<param name="human_description" textfile="$(find human_moveit_config)/urdf/human.urdf" /> 

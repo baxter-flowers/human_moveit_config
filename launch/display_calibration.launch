@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
+    
+    <include file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" />
+
+    <include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" />
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find human_moveit_config)/config/display_urdf.rviz" required="true" />
+</launch>
