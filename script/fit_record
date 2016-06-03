@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+import rospy
+from human_moveit_config.human_model import HumanModel
+import json
+import rospkg
+from os.path import join
+from baxter_commander.persistence import statetodict
+import tf
+import transformations
+
+
+def fit(id_user, condition, shape):
+    tfb = tf.TransformBroadcaster()
+    rospy.sleep(1)
+
+    rospy.init_node('optitrack_reader')
+    rospack = rospkg.RosPack()
+    # create the human model
+    human = HumanModel()
+
+    # import file
+    dir_results = join(rospack.get_path("thr_xp_human_comfort"), 'results')
+    filename = join(dir_results, id_user, 'records', condition, shape, 'frames.json')
+    with open(filename) as data_file:
+        data = json.load(data_file)
+
+    lookup_list = ['head', 'shoulder_center', 'right_hand',
+                   'right_elbow', 'left_hand', 'left_elbow', 'shapeo']
+    recorded_poses = []
+    times = []
+    object_poses = []
+    for tr in data['transforms']:
+        rec = {}
+        rec_object = {}
+        # get the transformation of the human base
+        if tr['objects']['/human/tracker/base']['visible']:
+            HumanTBase = transformations.inverse_transform(tr['objects']['/human/tracker/base']['pose'])
+            for trans in lookup_list:
+                if trans == 'shapeo':
+                    if tr['objects']['/' + trans]['visible']:
+                        pose = transformations.multiply_transform(HumanTBase, tr['objects']['/' + trans]['pose'])
+                        rec_object[trans] = pose
+                else:
+                    rec_tf = '/human/tracker/' + trans
+                    if tr['objects'][rec_tf]['visible']:
+                        rec[trans] = transformations.multiply_transform(HumanTBase, tr['objects'][rec_tf]['pose'])
+            # append the dictionnarry to the list only if at least one element is visible
+        if rec or rec_object:
+            times.append(tr['time'])
+            if rec:
+                recorded_poses.append(rec)
+            if rec_object:
+                object_poses.append(rec_object)
+
+    # by default hip and ankles angles are fixed
+    fixed_joints = {}
+    fixed_joints['right_hip_0'] = 0.
+    fixed_joints['right_hip_1'] = 0.
+    fixed_joints['right_hip_2'] = 0.
+    fixed_joints['right_knee'] = 0.
+    fixed_joints['right_ankle_0'] = 0.
+    fixed_joints['right_ankle_1'] = 0.
+
+    fixed_joints['left_hip_0'] = 0.
+    fixed_joints['left_hip_1'] = 0.
+    fixed_joints['left_hip_2'] = 0.
+    fixed_joints['left_knee'] = 0.
+    fixed_joints['left_ankle_0'] = 0.
+    fixed_joints['left_ankle_1'] = 0.
+
+    # loop through all the recorded data
+    iteration = 0
+    human_states = {}
+    human_states['states'] = []
+    human_states['records'] = []
+    human_states['object_poses'] = []
+    human_states['times'] = []
+    # while iteration < 1 and not rospy.is_shutdown():
+    while iteration < len(recorded_poses) and not rospy.is_shutdown():
+        # publish the transforms
+        for key, value in recorded_poses[iteration].iteritems():
+            tfb.sendTransform(value[0], value[1], rospy.Time.now(), 'rec_' + key, '/human/base')
+
+        # calculate ik for head
+        state = human.inverse_kinematic(desired_poses=recorded_poses[iteration],
+                                        fixed_joints=fixed_joints)
+        # move the human to the new state
+        human.send_state(state)
+        # record the robot state
+        human_states['object_poses'].append(object_poses[iteration])
+        human_states['records'].append(recorded_poses[iteration])
+        human_states['states'].append(statetodict(state))
+        human_states['times'].append(times[iteration])
+        iteration += 1
+        print iteration
+
+    # dump the json file
+    rospack = rospkg.RosPack()
+    output_file = join(dir_results, id_user, 'records', condition, shape, 'replay.json')
+    with open(output_file, 'w') as outfile:
+        json.dump(human_states, outfile, indent=4, sort_keys=True)
+
+if __name__ == '__main__':
+    id_user = '5114'
+    consditions = ['fixed', 'relative']
+    shapes = ['star', 'hexagon', 'ellipse', 'slice', 'trapezium']
+    for c in consditions:
+        for s in shapes:
+            fit(id_user, c, s)

@@ -3,16 +3,23 @@ import rospy
 from human_moveit_config.human_model import HumanModel
 import json
 import rospkg
-from baxter_commander.persistence import dicttostate
 import time
 from sensor_msgs.msg import JointState
+from os.path import join
+from baxter_commander.persistence import dicttostate
+import sys
 
 
-def main():
+def main(id_user, condition, shape):
     reba_publisher = rospy.Publisher('reba_assess', JointState, queue_size=1)
     rospy.init_node('optitrack_replay')
     rospack = rospkg.RosPack()
-    with open(rospack.get_path("human_moveit_config")+"/results/test_new_model.json") as data_file:
+
+    # import file
+    dir_results = join(rospack.get_path("thr_xp_human_comfort"), 'results')
+    filename = join(dir_results, id_user, 'records', condition, shape, 'replay.json')
+
+    with open(filename) as data_file:
         data = json.load(data_file)
     # loop through all the data
     rate = rospy.Rate(20)
@@ -20,15 +27,18 @@ def main():
     human = HumanModel()
 
     start_time = time.time()
-    for rs, t in zip(data['states'], data['times']):
-        js = dicttostate(rs).joint_state
+    for dict_js, t in zip(data['states'], data['times']):
         # iter_time = time.time()
+        js = dicttostate(dict_js).joint_state
         human.send_state(js)
         reba_publisher.publish(js)
         rate.sleep()
         if rospy.is_shutdown():
             break
-    print 'total time: '+str(time.time()-start_time)
+    print 'total time: ' + str(time.time() - start_time)
 
 if __name__ == '__main__':
-    main()
+    id_user = '5114'
+    condition = sys.argv[1]
+    shape = sys.argv[2]
+    main(id_user, condition, shape)
