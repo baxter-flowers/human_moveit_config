@@ -126,8 +126,8 @@ class HumanModel(object):
         # convert the fixed joints to joint state
         fixed_joint_state = JointState()
         for key, value in fixed_joints.iteritems():
-            fixed_joint_state.name += key
-            fixed_joint_state.position += value
+            fixed_joint_state.name += [key]
+            fixed_joint_state.position += [value]
         return compute_ik_client()
 
     def get_joint_values(self, group_name, joint_names=None):
