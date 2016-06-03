@@ -48,14 +48,14 @@ class SensorCalibrator(object):
             rot_cost = 1 - np.inner(pose1[1], pose2[1])**2
             return pos_cost + rot_coeff * rot_cost
 
-        def base_cost(base_pose):
+        def base_cost(base_pose, coeff=2):
             q = base_pose[1]
             # calculate z axis from quaternion
             z = [2 * (q[0] * q[2] + q[1] * q[3]),
                  2 * (q[1] * q[2] - q[0] * q[3]),
                  1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]]
             # check that the z base axis is normal to the ground
-            cost = abs(np.dot(z, self.ground_axis) - 1)
+            cost = coeff * abs(np.dot(z, self.ground_axis) - 1)
             return cost
 
         # first extract the transformations
@@ -120,7 +120,7 @@ class SensorCalibrator(object):
         self.keys = ['base'] + self.keys
         # set limits for search space
         bounds = []
-        pos_bounds = [-0.2, 0.2]
+        pos_bounds = [-0.05, 0.05]
         rot_bounds = [-1, 1]
         for key in self.keys:
             for i in range(3):
