@@ -83,7 +83,7 @@ class SensorCalibrator(object):
         print cost
         return cost
 
-    def calibrate(self, record, frames='all'):
+    def calibrate(self, record, frames='all', maxiter=200):
         def random_transforms(pos_bounds, rot_bounds):
             flat_transforms = []
             for key in self.keys:
@@ -137,7 +137,8 @@ class SensorCalibrator(object):
         res = opti.minimize(self._evaluate_calibration,
                             initial_calibr,
                             bounds=bounds,
-                            method='L-BFGS-B')
+                            method='L-BFGS-B',
+                            options={'maxfun': maxiter})
 
         # extract the list of transformations
         list_transforms = self.extract_transforms(res.x)
