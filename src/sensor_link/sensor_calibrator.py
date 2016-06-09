@@ -83,7 +83,7 @@ class SensorCalibrator(object):
         print cost
         return cost
 
-    def calibrate(self, record, frames='all', maxiter=200):
+    def calibrate(self, record, frames='all', maxiter=100):
         def random_transforms(pos_bounds, rot_bounds):
             flat_transforms = []
             for key in self.keys:
