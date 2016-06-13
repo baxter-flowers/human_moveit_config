@@ -74,8 +74,8 @@ class HumanModel(object):
             res.append(joint_state.position[index])
         return res
 
-    def forward_kinematic(self, joint_state, group_name='whole_body', base='base', links=None):
-        def compute_fk_client(joints):
+    def forward_kinematic(self, joint_state, base='base', links=None):
+        def compute_fk_client():
             rospy.wait_for_service('compute_fk')
             try:
                 compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
@@ -83,40 +83,37 @@ class HumanModel(object):
                 header.stamp = rospy.Time.now()
                 header.frame_id = base
                 rs = RobotState()
-                rs.joint_state.header = header
-                rs.joint_state.name = group.get_active_joints()
-                rs.joint_state.position = joints
+                rs.joint_state = joint_state
                 res = compute_fk(header, links, rs)
                 return res.pose_stamped
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
 
-        group = self.groups[group_name]
-        group_joints = self.extract_group_joints(group_name, joint_state)
-        # if link is None assume it is the end-effector
         if links is None:
-            links = self.end_effectors[group_name]
+            links = self.end_effectors['whole_body']
         if type(links) is not list:
             if links == "all":
-                links = self.get_link_names(group_name)
+                links = self.get_link_names('whole_body')
             else:
                 links = [links]
-        pose_stamped_list = compute_fk_client(group_joints)
+        pose_stamped_list = compute_fk_client()
         # transform it in a dict of poses
         pose_dict = {}
         for i in range(len(links)):
             pose_dict[links[i]] = transformations.pose_to_list(pose_stamped_list[i].pose)
         return pose_dict
 
-    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1):
+    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1, group_names='whole_body'):
         def compute_ik_client():
             rospy.wait_for_service('compute_human_ik')
             try:
                 compute_ik = rospy.ServiceProxy('compute_human_ik', GetHumanIK)
-                res = compute_ik(poses, fixed_joint_state, tolerance)
+                res = compute_ik(poses, fixed_joint_state, tolerance, group_names)
                 return res.joint_state
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
+        if group_names is not list:
+            group_names = [group_names]
         # convert the desired poses to PoseStamped
         poses = []
         for key, value in desired_poses.iteritems():

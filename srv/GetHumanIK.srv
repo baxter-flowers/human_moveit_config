@@ -11,5 +11,6 @@
 geometry_msgs/PoseStamped[] desired_poses
 sensor_msgs/JointState fixed_joints
 float32 tolerance
+string[] group_names
 ---
 sensor_msgs/JointState joint_state 
