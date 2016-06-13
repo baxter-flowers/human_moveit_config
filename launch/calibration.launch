@@ -5,8 +5,6 @@
     <arg name="reset_pose" default="False" />
 
     <rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
-    
-    <include file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" />
 
     <include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" />
 
