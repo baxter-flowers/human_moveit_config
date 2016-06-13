@@ -136,7 +136,7 @@ class IKOptimizer:
         for i in range(len(req.fixed_joints.name)):
             fixed_joints_dict[req.fixed_joints.name[i]] = req.fixed_joints.position[i]
         # get initial state
-        init_state = self.model.get_current_state()
+        init_state = req.seed
         # get only joints to optimize
         init_joints = []
         for name in self.joint_names:

@@ -103,15 +103,17 @@ class HumanModel(object):
             pose_dict[links[i]] = transformations.pose_to_list(pose_stamped_list[i].pose)
         return pose_dict
 
-    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1, group_names='whole_body'):
+    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1, group_names='whole_body', seed=None):
         def compute_ik_client():
             rospy.wait_for_service('compute_human_ik')
             try:
                 compute_ik = rospy.ServiceProxy('compute_human_ik', GetHumanIK)
-                res = compute_ik(poses, fixed_joint_state, tolerance, group_names)
+                res = compute_ik(poses, fixed_joint_state, tolerance, group_names, seed)
                 return res.joint_state
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
+        if seed is None:
+            seed = self.get_current_state()
         if group_names is not list:
             group_names = [group_names]
         # convert the desired poses to PoseStamped
