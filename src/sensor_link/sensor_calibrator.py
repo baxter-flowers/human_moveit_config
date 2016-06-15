@@ -66,7 +66,7 @@ class SensorCalibrator(object):
         base_transform = list_calibr[0]
         inv_base = transformations.inverse_transform(base_transform)
         # get pose of the base
-        base_pose = transformations.multiply_transform(self.recorded_poses['base'], base_transform)
+        base_pose = transformations.multiply_transform(self.recorded_poses['base'], inv_base)
         # calculate cost of the base
         cost += (10 * base_cost(base_pose))
         # loop trough all the transforms
@@ -75,8 +75,10 @@ class SensorCalibrator(object):
             # get the fk
             fk = self.fk[key]
             # compute the corresponding transformation from recorded data
-            pose = transformations.multiply_transform(inv_base, self.recorded_poses[key])
-            pose = transformations.multiply_transform(pose, list_calibr[i])
+            # pose = transformations.multiply_transform(inv_base, self.recorded_poses[key])
+            # pose = transformations.multiply_transform(pose, list_calibr[i])
+            pose = transformations.multiply_transform(base_transform, self.recorded_poses[key])
+            pose = transformations.multiply_transform(pose, transformations.inverse_transform(list_calibr[i]))
             # compute the cost based on the distance
             cost += distance_cost(fk, pose)
 
@@ -98,7 +100,9 @@ class SensorCalibrator(object):
         def correct_base_guess(base_transform):
             if base_transform == 0:
                 return False
-            q = base_transform[1]
+
+            inv_base = transformations.inverse_transform(base_transform)
+            q = inv_base[1]
             # calculate x base axis from quaternion
             x = [1 - 2 * q[1] * q[1] - 2 * q[2] * q[2],
                  2 * (q[0] * q[1] + q[2] * q[3]),
@@ -120,11 +124,24 @@ class SensorCalibrator(object):
         self.keys = ['base'] + self.keys
         # set limits for search space
         bounds = []
-        pos_bounds = [-0.05, 0.05]
+        pos_bounds = [-0.1, 0.1]
         rot_bounds = [-1, 1]
         for key in self.keys:
-            for i in range(3):
+            if key == 'base':
+                bounds.append([0.05, 0.2])
                 bounds.append(pos_bounds)
+                bounds.append([-0.01, 0.01])
+            elif key == 'shoulder_center':
+                bounds.append([0.05, 0.2])
+                bounds.append(pos_bounds)
+                bounds.append(pos_bounds)
+            elif key == 'head':
+                bounds.append([0.05, 0.2])
+                bounds.append(pos_bounds)
+                bounds.append([0.05, 0.2])
+            else:
+                for i in range(3):
+                    bounds.append(pos_bounds)
             for i in range(4):
                 bounds.append(rot_bounds)
         # collect initial guess
@@ -146,5 +163,6 @@ class SensorCalibrator(object):
         for i in range(len(self.keys)):
             pos = list_transforms[i][0].tolist()
             rot = list_transforms[i][1].tolist()
-            res_calibr[self.keys[i]] = [pos, rot]
+            inv_trans = transformations.inverse_transform([pos, rot])
+            res_calibr[self.keys[i]] = [list(inv_trans[0]), list(inv_trans[1])]
         return res_calibr
