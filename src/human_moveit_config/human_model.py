@@ -76,7 +76,7 @@ class HumanModel(object):
 
     def forward_kinematic(self, joint_state, base='base', links=None):
         def compute_fk_client():
-            rospy.wait_for_service('compute_fk', timeout=2)
+            rospy.wait_for_service('compute_fk')
             try:
                 compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
                 header = Header()
@@ -110,7 +110,7 @@ class HumanModel(object):
 
     def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1, group_names='whole_body', seed=None):
         def compute_ik_client():
-            rospy.wait_for_service('compute_human_ik', timeout=2)
+            rospy.wait_for_service('compute_human_ik')
             try:
                 compute_ik = rospy.ServiceProxy('compute_human_ik', GetHumanIK)
                 res = compute_ik(poses, fixed_joint_state, tolerance, group_names, seed)
