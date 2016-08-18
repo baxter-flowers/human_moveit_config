@@ -154,8 +154,8 @@ class SensorCalibrator(object):
         res = opti.minimize(self._evaluate_calibration,
                             initial_calibr,
                             bounds=bounds,
-                            method='L-BFGS-B',
-                            options={'maxfun': maxiter})
+                            method='L-BFGS-B')
+                            # options={'maxfun': maxiter})
 
         # extract the list of transformations
         list_transforms = self.extract_transforms(res.x)
@@ -165,4 +165,5 @@ class SensorCalibrator(object):
             rot = list_transforms[i][1].tolist()
             inv_trans = transformations.inverse_transform([pos, rot])
             res_calibr[self.keys[i]] = [list(inv_trans[0]), list(inv_trans[1])]
+        print res
         return res_calibr
