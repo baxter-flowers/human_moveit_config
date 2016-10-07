@@ -11,10 +11,15 @@ import transformations
 import numpy as np
 from human_moveit_config.srv import GetJacobian
 from human_moveit_config.srv import GetHumanIK
+from scipy.spatial import cKDTree
+from rospkg import RosPack
+from os.path import join
 
 
 class HumanModel(object):
     def __init__(self, description='human_description'):
+        rospack = RosPack()
+        self.path = rospack.get_path('human_moveit_config')
         self.description = description
         self.robot_commander = moveit_commander.RobotCommander(description)
         self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
@@ -41,10 +46,10 @@ class HumanModel(object):
         self.end_effectors['whole_body'] = self.end_effectors['upper_body'] + self.end_effectors['lower_body']
         # initialize common links per group
         self.group_links = {}
-        self.group_links['head'] = ['spine', 'head']
+        self.group_links['head'] = ['shoulder_center', 'head']
         # fill the disct of active joints by links
         self.joint_by_links = {}
-        self.joint_by_links['spine'] = ['spine_0', 'spine_1', 'spine_2']
+        self.joint_by_links['shoulder_center'] = ['spine_0', 'spine_1', 'spine_2']
         self.joint_by_links['head'] = ['neck_0', 'neck_1', 'neck_2']
         sides = ['right', 'left']
         for s in sides:
@@ -58,6 +63,21 @@ class HumanModel(object):
             self.joint_by_links[s + '_hip'] = [s + '_hip_0', s + '_hip_1', s + '_hip_2']
             self.joint_by_links[s + '_knee'] = [s + '_knee']
             self.joint_by_links[s + '_foot'] = [s + '_ankle_0', s + '_ankle_1']
+        self.init_nearest_neighbour_trees()
+
+    def init_nearest_neighbour_trees(self):
+        def load_database(link):
+            database = np.load(join(self.path, 'database', 'database_' + link + '.npz'))
+            data_dict = {}
+            data_dict['data'] = database
+            data_dict['tree'] = cKDTree(database['data'][:, -3:])
+            return data_dict
+        self.trees = {}
+        links = ['head', 'shoulder_center']
+        for s in ['right', 'left']:
+            links += [s + '_elbow', s + '_hand']
+        for l in links:
+            self.trees[l] = load_database(l)
 
     def get_group_of_link(self, link):
         for key, value in self.group_links.iteritems():
@@ -153,8 +173,10 @@ class HumanModel(object):
     def get_current_state(self):
         return self.robot_commander.get_current_state().joint_state
 
-    def send_state(self, joint_state, wait=True):
-        self.joint_publisher.publish(joint_state)
+    def send_state(self, state, wait=True):
+        if isinstance(state, RobotState):
+            state = state.joint_state
+        self.joint_publisher.publish(state)
         if wait:
             rospy.sleep(0.1)
 
@@ -214,7 +236,7 @@ class HumanModel(object):
         limits['limits'] = joint_limits
         return limits
 
-    def get_random_joint_values(self, group_name, joint_names=None):
+    def get_random_joint_values(self, group_name='whole_body', joint_names=None):
         # if all joints can move
         if joint_names is None or not joint_names:
             return self.groups[group_name].get_random_joint_values()
@@ -281,3 +303,16 @@ class HumanModel(object):
             ref_point = [0, 0, 0]
         # return the jacobian
         return compute_jacobian_srv()
+
+    def nearest_neighbour(self, fk_dict):
+        def query_database(link, fk):
+            res = self.trees[link]['tree'].query(fk)
+            joints = self.trees[link]['data']['data'][res[1]][:-3]
+            joint_names = self.trees[link]['data']['names'][:-3]
+            return joints, joint_names
+        state = JointState()
+        for key, value in fk_dict:
+            joints, joint_names = query_database(key, value)
+            state.position += joints
+            state.name += joint_names
+        return state
