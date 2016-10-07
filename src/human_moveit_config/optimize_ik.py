@@ -12,7 +12,7 @@ class IKOptimizer:
         self.model = HumanModel()
         # set the cost factors (end_effectors, fixed_joints)
         self.cost_factors = [1, 1]
-        self.distance_factor = [0, 1]
+        self.distance_factor = [1, 3]
 
     def fixed_joints_cost(self, joint_array, dict_values):
         cost = 0
@@ -42,7 +42,6 @@ class IKOptimizer:
             # calcualte distance in position
             cost += self.distance_factor[0] * np.sum((np.array(value[0]) - np.array(des_pose[0]))**2)
             # calcualte distance in rotation
-            # cost += self.distance_factor[1]*2*np.arccos(abs(np.inner(value[1], des_pose[1])))
             cost += self.distance_factor[1] * (1 - np.inner(value[1], des_pose[1])**2)
         return cost
 
