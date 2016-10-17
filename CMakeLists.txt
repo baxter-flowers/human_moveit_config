@@ -14,6 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   moveit_ros_planning_interface
   message_generation
+  trac_ik_lib
+  eigen_conversions
 )
 
 find_package(Eigen REQUIRED)
@@ -140,12 +142,20 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(reba_optim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-FILE(GLOB SRCFILES ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.cpp ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.hpp)
-add_executable(jacobian_server ${SRCFILES})
+FILE(GLOB SRCFILES_JAC ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.cpp ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.hpp)
+add_executable(jacobian_server ${SRCFILES_JAC})
 
 target_link_libraries(jacobian_server
-	${catkin_LIBRARIES}
-	${Boost_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+FILE(GLOB SRCFILES_IK ${PROJECT_SOURCE_DIR}/src/kinematics/*.cpp ${PROJECT_SOURCE_DIR}/src/kinematics/*.hpp)
+add_executable(divided_ik_server ${SRCFILES_IK})
+
+target_link_libraries(divided_ik_server
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 ## Declare a C++ executable
