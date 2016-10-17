@@ -3,8 +3,12 @@ import numpy as np
 from scipy.optimize import minimize
 from .human_model import HumanModel
 from human_moveit_config.srv import GetHumanIKResponse
+from human_moveit_config.srv import GetHumanIK
 import transformations
 from sensor_msgs.msg import JointState
+from threading import Thread
+from threading import Lock
+import rospy
 
 
 class IKOptimizer:
@@ -13,6 +17,20 @@ class IKOptimizer:
         # set the cost factors (end_effectors, fixed_joints)
         self.cost_factors = [1, 1]
         self.distance_factor = [1, 3]
+        self.links = ['shoulder_center', 'head', 'left_elbow', 'left_hand', 'right_elbow', 'right_hand']
+        self.bases = ['base', 'shoulder_center', 'shoulder_center', 'left_elbow', 'shoulder_center', 'right_elbow']
+        self.joint_by_links = {}
+        for l in self.links:
+            self.joint_by_links[l] = self.model.joint_by_links[l]
+        for s in ['right', 'left']:
+            self.joint_by_links[s + '_elbow'] = (self.model.joint_by_links[s + '_shoulder'] +
+                                                 self.joint_by_links[s + '_elbow'])
+        self.lock = Lock()
+        self.div_ik_srv = {}
+        for l in self.links:
+            rospy.wait_for_service('/ik/' + l)
+            print 'ready ' + l
+            self.div_ik_srv[l] = rospy.ServiceProxy('/ik/' + l, GetHumanIK)
 
     def fixed_joints_cost(self, joint_array, dict_values):
         cost = 0
@@ -20,13 +38,6 @@ class IKOptimizer:
             if key in self.joint_names:
                 cost += (joint_array[self.joint_names.index(key)] - value)**2
         return cost
-
-    # def jacobian_fixed_joints_cost(self, joint_array, dict_values):
-    #     jac_fix = np.zeros(len(self.model.get_joint_names()))
-    #     for key, value in dict_values.iteritems():
-    #         index = self.model.get_joint_names().index(key)
-    #         jac_fix[index] = 2 * (joint_array[index] - value)
-    #     return jac_fix
 
     def desired_poses_cost(self, joint_array, dict_values):
         # get the forward kinematic of the whole body at specified links
@@ -45,65 +56,6 @@ class IKOptimizer:
             cost += self.distance_factor[1] * (1 - np.inner(value[1], des_pose[1])**2)
         return cost
 
-    # def quaternion_jacobian(self, quat_fk, jac_vect):
-    #     # calculate the quaternion skew simetric matrix
-    #     skew_matrix = [[-quat_fk[0], -quat_fk[1], -quat_fk[2]],
-    #                    [quat_fk[3], -quat_fk[2], quat_fk[1]],
-    #                    [quat_fk[2], quat_fk[3], -quat_fk[0]],
-    #                    [-quat_fk[1], quat_fk[0], quat_fk[3]]]
-    #     # multiply it with the jacobian
-    #     jac_quat = 0.5 * np.dot(skew_matrix, jac_vect)
-
-    #     # print jac_quat
-    #     # # reorder it according to ROS order
-    #     temp = jac_quat[0]
-    #     jac_quat[:-1] = jac_quat[1:]
-    #     jac_quat[-1] = temp
-
-    #     # print jac_quat
-
-    #     # print '--------------------'
-    #     return jac_quat
-
-    # def jacobian_desired_poses_cost(self, joint_array, dict_values):
-    #     joint_names = self.model.get_joint_names()
-    #     # get current state
-    #     js = self.model.get_current_state()
-    #     # set the new joint values
-    #     js.position = joint_array
-    #     fk = self.model.forward_kinematic(js, links=dict_values.keys())
-    #     # loop through all the desired poses
-    #     jac_des_pose = np.zeros(len(joint_names))
-    #     for key, value in fk.iteritems():
-    #         # get the group name corresponding to the link
-    #         group_name = self.model.get_group_of_link(key)
-    #         group_joints = self.model.get_joint_names(group_name)
-    #         # extract the desired pose
-    #         des_pose = dict_values[key]
-    #         # calculate the jacobian for the given link
-    #         jac_model = self.model.jacobian(group_name, js, use_quaternion=False, link=key)
-    #         # precalculate difference in position
-    #         pos_diff = np.array(value[0]) - np.array(des_pose[0])
-    #         # pre calculate the inner product
-    #         inner_prod = np.inner(value[1], des_pose[1])
-    #         # flip the quaternion if necessary
-    #         if inner_prod < 0:
-    #             print "Hello Woooooooooooooorld"
-    #             value[1] = -np.array(value[1])
-    #             inner_prod = -inner_prod
-    #         # quat_des = des_pose[1]
-    #         for i in range(len(group_joints)):
-    #             index = joint_names.index(group_joints[i])
-    #             for j in range(3):
-    #                 jac_des_pose[index] += 2 * self.distance_factor[0] * jac_model[j, i] * pos_diff[j]
-    #             # extract the rotational part of the jacobian
-    #             jac_vect = jac_model[3:, i]
-    #             # convert it into quaternions
-    #             jac_quat = self.quaternion_jacobian(value[1], jac_vect)
-    #             # calculate jacobian of rotational distance
-    #             jac_des_pose[index] += -2 * self.distance_factor[1] * np.inner(jac_quat, des_pose[1]) * inner_prod
-    #     return jac_des_pose
-
     def cost_function(self, q, desired_poses={}, fixed_joints={}):
         cost = 0
         if desired_poses:
@@ -112,13 +64,45 @@ class IKOptimizer:
             cost += self.cost_factors[1] * self.fixed_joints_cost(q, fixed_joints)
         return cost
 
-    # def jacobian_cost_function(self, q, desired_poses={}, fixed_joints={}):
-    #     jac_cost = np.zeros(len(self.model.get_joint_names()))
-    #     if desired_poses:
-    #         jac_cost += self.cost_factors[0] * self.jacobian_desired_poses_cost(q, desired_poses)
-    #     if fixed_joints:
-    #         jac_cost += self.cost_factors[1] * self.jacobian_fixed_joints_cost(q, fixed_joints)
-    #     return jac_cost
+    def sub_poses_cost(self, joint_array, dict_values):
+        js = JointState()
+        js.position = joint_array
+        js.name = dict_values['joints']
+        # calculate the fk
+        group = dict_values['frame']
+        fk = self.model.forward_kinematic(js, base=dict_values['base'], links=group)
+        value = fk[group]
+        des_pose = dict_values['pose']
+        cost = self.distance_factor[0] * np.sum((np.array(value[0]) - np.array(des_pose[0]))**2)
+        cost += self.distance_factor[1] * (1 - np.inner(value[1], des_pose[1])**2)
+        return cost
+
+    def compute_sub_ik(self, group, desired_dict, result):
+        # get the desired pose in the correct base frame
+        index = self.links.index(group)
+        base = self.bases[index]
+        tr = desired_dict[group]
+        if base != 'base':
+            tr_base = desired_dict[base]
+            inv_base = transformations.inverse_transform(tr_base)
+            desired_pose = transformations.multiply_transform(inv_base, tr)
+        else:
+            desired_pose = tr
+
+        # transform it back to PoseStamped
+        try:
+            desired_pose = transformations.list_to_pose(desired_pose)
+            # call the srv
+            res = self.div_ik_srv[group](desired_poses=[desired_pose])
+            joints = res.joint_state.position
+
+        except rospy.ServiceException, e:
+                print "Service call failed: %s" % e
+                # in case of failure return T pose
+                joints = np.zeros(len(self.joint_by_links[group]))
+
+        with self.lock:
+            result[group] = joints
 
     def handle_compute_ik(self, req):
         joint_names_set = set()
@@ -157,6 +141,39 @@ class IKOptimizer:
         for i in range(len(self.joint_names)):
             name = self.joint_names[i]
             js.position[js.name.index(name)] = opt_joints[i]
+        # replace fixed values
+        for key, value in fixed_joints_dict.iteritems():
+            js.position[js.name.index(key)] = value
+        # return server reply
+        return GetHumanIKResponse(js)
+
+    def handle_compute_ik_divided(self, req):
+        nb_frames = len(req.desired_poses)
+        # convert the desired poses to dict
+        desired_dict = {}
+        for pose in req.desired_poses:
+            desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
+        # convert the fixed joint state to dict
+        fixed_joints_dict = {}
+        for i in range(len(req.fixed_joints.name)):
+            fixed_joints_dict[req.fixed_joints.name[i]] = req.fixed_joints.position[i]
+        # create as many threads as nb frames
+        threads = [None] * nb_frames
+        results = {}
+        for i, frame in enumerate(desired_dict.keys()):
+            threads[i] = Thread(target=self.compute_sub_ik, args=(frame, desired_dict, results))
+            threads[i].start()
+        # join thread results
+        for i in range(len(threads)):
+            threads[i].join()
+        # convert restult to a joint state
+        js = self.model.get_current_state()
+        js.position = list(js.position)
+        js.name = list(js.name)
+        # replace joint values with optimized ones
+        for key, value in results.iteritems():
+            for i, name in enumerate(self.joint_by_links[key]):
+                js.position[js.name.index(name)] = value[i]
         # replace fixed values
         for key, value in fixed_joints_dict.iteritems():
             js.position[js.name.index(key)] = value

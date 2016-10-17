@@ -14,10 +14,11 @@ from human_moveit_config.srv import GetHumanIK
 from scipy.spatial import cKDTree
 from rospkg import RosPack
 from os.path import join
+from copy import deepcopy
 
 
 class HumanModel(object):
-    def __init__(self, description='human_description'):
+    def __init__(self, description='human_description', nn_with_orient=True):
         rospack = RosPack()
         self.path = rospack.get_path('human_moveit_config')
         self.description = description
@@ -63,14 +64,21 @@ class HumanModel(object):
             self.joint_by_links[s + '_hip'] = [s + '_hip_0', s + '_hip_1', s + '_hip_2']
             self.joint_by_links[s + '_knee'] = [s + '_knee']
             self.joint_by_links[s + '_foot'] = [s + '_ankle_0', s + '_ankle_1']
+        self.with_orient = nn_with_orient
         self.init_nearest_neighbour_trees()
+
+        rospy.wait_for_service('compute_fk')
+        self.compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
 
     def init_nearest_neighbour_trees(self):
         def load_database(link):
-            database = np.load(join(self.path, 'database', 'database_' + link + '.npz'))
+            database = np.load(join(self.path, 'database8', 'database_' + link + '.npz'))
             data_dict = {}
             data_dict['data'] = database
-            data_dict['tree'] = cKDTree(database['data'][:, -3:])
+            if self.with_orient:
+                data_dict['tree'] = cKDTree(database['data'][:, -7:])
+            else:
+                data_dict['tree'] = cKDTree(database['data'][:, -7:-4])
             return data_dict
         self.trees = {}
         links = ['head', 'shoulder_center']
@@ -96,15 +104,13 @@ class HumanModel(object):
 
     def forward_kinematic(self, joint_state, base='base', links=None):
         def compute_fk_client():
-            rospy.wait_for_service('compute_fk')
             try:
-                compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
                 header = Header()
                 header.stamp = rospy.Time.now()
-                header.frame_id = base
+                header.frame_id = 'base'
                 rs = RobotState()
                 rs.joint_state = joint_state
-                res = compute_fk(header, links, rs)
+                res = self.compute_fk(header, links, rs)
                 return res.pose_stamped
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
@@ -118,14 +124,24 @@ class HumanModel(object):
                 links = self.get_link_names('whole_body')
             else:
                 links = [links]
+        # check that the base is in links
+        if base != 'base' and base not in links:
+            links.append(base)
         pose_stamped_list = compute_fk_client()
+        if not pose_stamped_list:
+            return {}
         # transform it in a dict of poses
         pose_dict = {}
-        for i in range(len(links)):
-            if pose_stamped_list:
+        if base != 'base':
+            tr_base = transformations.pose_to_list(pose_stamped_list[links.index(base)].pose)
+            inv_base = transformations.inverse_transform(tr_base)
+            for i in range(len(links)):
+                if links[i] != base:
+                    tr = transformations.pose_to_list(pose_stamped_list[i].pose)
+                    pose_dict[links[i]] = transformations.multiply_transform(inv_base, tr)
+        else:
+            for i in range(len(links)):
                 pose_dict[links[i]] = transformations.pose_to_list(pose_stamped_list[i].pose)
-            else:
-                pose_dict[links[i]] = [[0, 0, 0], [0, 0, 0, 1]]
         return pose_dict
 
     def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1, group_names='whole_body', seed=None):
@@ -304,14 +320,18 @@ class HumanModel(object):
         # return the jacobian
         return compute_jacobian_srv()
 
-    def nearest_neighbour(self, fk_dict):
+    def nearest_neighbour(self, fk_dict, scale_orient=40):
         def query_database(link, fk):
-            res = self.trees[link]['tree'].query(fk)
-            joints = self.trees[link]['data']['data'][res[1]][:-3]
-            joint_names = self.trees[link]['data']['names'][:-3]
-            return joints, joint_names
+            x_vector = deepcopy(fk[0])
+            if self.with_orient:
+                x_vector += (np.array(fk[1]) / scale_orient).tolist()
+            res = self.trees[link]['tree'].query(x_vector)
+            joints = self.trees[link]['data']['data'][res[1]][:-7]
+            joint_names = self.trees[link]['data']['names'][:-7]
+            return joints.tolist(), joint_names.tolist()
+
         state = JointState()
-        for key, value in fk_dict:
+        for key, value in fk_dict.iteritems():
             joints, joint_names = query_database(key, value)
             state.position += joints
             state.name += joint_names

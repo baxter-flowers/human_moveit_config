@@ -7,9 +7,10 @@ import rospy
 def main():
     rospy.init_node('human_ik_srv')
     opti = IKOptimizer()
-    rospy.Service('compute_human_ik', GetHumanIK, opti.handle_compute_ik)
+    rospy.Service('compute_human_ik', GetHumanIK, opti.handle_compute_ik_divided)
     print "Ready to compute IK"
     rospy.spin()
+
 
 if __name__ == '__main__':
     main()
