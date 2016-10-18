@@ -4,13 +4,13 @@
 <xacro:include filename="props_global.urdf.xacro" />
   
 <xacro:macro name="human_leg" params="side reflect">
-    <link name="${side}_leg_mount"/>
+    <link name="${prefix}/${side}_leg_mount"/>
 
-    <link name="${side}_hip_0"/>
+    <link name="${prefix}/${side}_hip_0"/>
 
-    <link name="${side}_hip_1"/>
+    <link name="${prefix}/${side}_hip_1"/>
 
-    <link name="${side}_hip">
+    <link name="${prefix}/${side}_hip">
       <visual>
         <origin xyz="${thigh_length/2} 0 0" rpy="0 ${PI_DIV_2} 0" />
         <geometry>
@@ -19,7 +19,7 @@
       </visual>
     </link>
       
-    <link name="${side}_knee">
+    <link name="${prefix}/${side}_knee">
       <visual>
         <origin xyz="${shin_length/2} 0 0" rpy="0 ${PI_DIV_2} 0" />
         <geometry>
@@ -28,8 +28,8 @@
       </visual>
     </link>
 
-    <link name="${side}_ankle_0"/> 
-    <link name="${side}_ankle">
+    <link name="${prefix}/${side}_ankle_0"/> 
+    <link name="${prefix}/${side}_ankle">
       <visual>
         <origin xyz="${foot_length/2} 0 0" rpy="0 0 0" />
         <geometry>
@@ -38,14 +38,14 @@
       </visual>
     </link>
 
-    <link name="${side}_foot"/>
+    <link name="${prefix}/${side}_foot"/>
 
     <!-- Joints -->
 
     <joint name="${side}_hip_leg_mount" type="fixed">
       <origin xyz="0 ${reflect*hip_offset_width} ${-hip_offset_height}" rpy="0 ${PI_DIV_2} 0" />
-      <parent link="base" />
-      <child link="${side}_leg_mount" />
+      <parent link="${prefix}/base" />
+      <child link="${prefix}/${side}_leg_mount" />
     </joint>
 
     <!-- hip : spherical -->
@@ -53,24 +53,24 @@
         <joint name="${side}_hip_0" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="0 0 1" />
-          <parent link="${side}_leg_mount" />
-          <child link="${side}_hip_0" />
+          <parent link="${prefix}/${side}_leg_mount" />
+          <child link="${prefix}/${side}_hip_0" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
 
         <joint name="${side}_hip_1" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="0 1 0" />
-          <parent link="${side}_hip_0" />
-          <child link="${side}_hip_1" />
+          <parent link="${prefix}/${side}_hip_0" />
+          <child link="${prefix}/${side}_hip_1" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
 
         <joint name="${side}_hip_2" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="1 0 0" />
-          <parent link="${side}_hip_1" />
-          <child link="${side}_hip" />
+          <parent link="${prefix}/${side}_hip_1" />
+          <child link="${prefix}/${side}_hip" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
     
@@ -79,8 +79,8 @@
     <joint name="${side}_knee" type="revolute">
       <origin xyz="${thigh_length} 0 0" rpy="${PI_DIV_2} 0 0" />
       <axis xyz="0 0 1" />
-      <parent link="${side}_hip" />
-      <child link="${side}_knee" />
+      <parent link="${prefix}/${side}_hip" />
+      <child link="${prefix}/${side}_knee" />
       <limit lower="${-PI}" upper="0.1" effort="${max_effort}" velocity="${max_velocity}"  />
     </joint>
 
@@ -88,24 +88,24 @@
         <joint name="${side}_ankle_0" type="revolute">
           <origin xyz="${shin_length} 0 0" rpy="${-PI_DIV_2} 0 ${PI_DIV_2}" />
           <axis xyz="0 0 1" />
-          <parent link="${side}_knee" />
-          <child link="${side}_ankle_0" />
+          <parent link="${prefix}/${side}_knee" />
+          <child link="${prefix}/${side}_ankle_0" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
 
         <joint name="${side}_ankle_1" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="0 1 0" />
-          <parent link="${side}_ankle_0" />
-          <child link="${side}_ankle" />
+          <parent link="${prefix}/${side}_ankle_0" />
+          <child link="${prefix}/${side}_ankle" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
         </joint>
     <!-- END ankle -->
 
     <joint name="${side}_foot" type="fixed">
       <origin xyz="${foot_length} 0 0" rpy="0 0 0" />
-      <parent link="${side}_ankle" />
-      <child link="${side}_foot" />
+      <parent link="${prefix}/${side}_ankle" />
+      <child link="${prefix}/${side}_foot" />
     </joint>
 
 </xacro:macro>

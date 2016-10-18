@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface" name="human_model" >
-       
+  <xacro:property name="prefix" value="/human" />
+
   <xacro:property name="PI" value="3.14159265359" />
   <xacro:property name="PI_DIV_2" value="1.5707963267948966" />
   <xacro:property name="PI_DIV_4" value="0.78539816339" />

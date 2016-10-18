@@ -4,7 +4,7 @@
 <xacro:include filename="props_global.urdf.xacro" />
  
 <xacro:macro name="human_body">
-	  <link name="base">
+	  <link name="${prefix}/base">
       <visual>
         <origin xyz="0 0 ${-hip_offset_height/2}" rpy="0 0 0" />
         <geometry>
@@ -13,7 +13,7 @@
       </visual>
     </link>
 
-    <link name="spine_0">
+    <link name="${prefix}/spine_0">
       <visual>
         <origin xyz="0 0 ${spine_down_length/2}" rpy="0 0 0" />
         <geometry>
@@ -22,10 +22,10 @@
       </visual>
     </link>
 
-    <link name="spine_1"/>
-    <link name="spine_2"/>
+    <link name="${prefix}/spine_1"/>
+    <link name="${prefix}/spine_2"/>
 
-    <link name="spine">
+    <link name="${prefix}/spine">
       <visual>
         <origin xyz="0 0 ${spine_up_length/2}" rpy="0 0 0" />
         <geometry>
@@ -34,7 +34,7 @@
       </visual>
     </link>
 
-    <link name="shoulder_center">
+    <link name="${prefix}/shoulder_center">
       <visual>
         <origin xyz="0 0 ${torso_length/2}" rpy="0 0 0" />
         <geometry>
@@ -43,10 +43,10 @@
       </visual>
     </link>
 
-    <link name="neck_0"/>
-    <link name="neck_1"/>
+    <link name="${prefix}/neck_0"/>
+    <link name="${prefix}/neck_1"/>
     
-    <link name="neck">
+    <link name="${prefix}/neck">
       <visual>
         <origin xyz="0 0 ${neck_length/2}" rpy="0 0 0" />
         <geometry>
@@ -55,7 +55,7 @@
       </visual>
     </link>
 
-    <link name="head">
+    <link name="${prefix}/head">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
@@ -66,71 +66,71 @@
 
     <joint name="hip" type="fixed">
       <origin xyz="0 0 0" rpy="0 0 0" />
-      <parent link="base" />
-      <child link="spine_0" />
+      <parent link="${prefix}/base" />
+      <child link="${prefix}/spine_0" />
     </joint>
 
     <!-- SPINE : spherical -->
     <joint name="spine_0" type="revolute">
       <origin xyz="0 0 ${spine_down_length}" rpy="0 0 0" />
       <axis xyz="1 0 0" />
-      <parent link="spine_0" />
-      <child link="spine_1" />
+      <parent link="${prefix}/spine_0" />
+      <child link="${prefix}/spine_1" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
     </joint>
 
     <joint name="spine_1" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <axis xyz="0 1 0" />
-      <parent link="spine_1" />
-      <child link="spine_2" />
+      <parent link="${prefix}/spine_1" />
+      <child link="${prefix}/spine_2" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
     </joint>
     
     <joint name="spine_2" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <axis xyz="0 0 1" />
-      <parent link="spine_2" />
-      <child link="spine" />
+      <parent link="${prefix}/spine_2" />
+      <child link="${prefix}/spine" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
     </joint>
 
     <joint name="shoulder_center" type="fixed">
       <origin xyz="0 0 ${spine_up_length}" rpy="0 0 0" />
-      <parent link="spine" />
-      <child link="shoulder_center" />
+      <parent link="${prefix}/spine" />
+      <child link="${prefix}/shoulder_center" />
     </joint>
 
     <!-- NECK : spherical -->
         <joint name="neck_0" type="revolute">
           <origin xyz="0 0 ${torso_length}" rpy="0 0 0" />
           <axis xyz="1 0 0" />
-          <parent link="shoulder_center" />
-          <child link="neck_0" />
+          <parent link="${prefix}/shoulder_center" />
+          <child link="${prefix}/neck_0" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
 
         <joint name="neck_1" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="0 1 0" />
-          <parent link="neck_0" />
-          <child link="neck_1" />
+          <parent link="${prefix}/neck_0" />
+          <child link="${prefix}/neck_1" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
 
         <joint name="neck_2" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="0 0 1" />
-          <parent link="neck_1" />
-          <child link="neck" />
+          <parent link="${prefix}/neck_1" />
+          <child link="${prefix}/neck" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}" />
         </joint>
     <!-- END NECK -->
 
     <joint name="head" type="fixed">
       <origin xyz="0 0 ${neck_length}" rpy="0 0 0" />
-      <parent link="neck" />
-      <child link="head" />
+      <parent link="${prefix}/neck" />
+      <child link="${prefix}/head" />
     </joint>
 
 </xacro:macro>

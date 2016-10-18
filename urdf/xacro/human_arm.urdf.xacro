@@ -4,13 +4,13 @@
 <xacro:include filename="props_global.urdf.xacro" />
   
 <xacro:macro name="human_arm" params="side reflect boolside">
-    <link name="${side}_arm_mount"/>
+    <link name="${prefix}/${side}_arm_mount"/>
 
-    <link name="${side}_shoulder_0"/>
+    <link name="${prefix}/${side}_shoulder_0"/>
 
-    <link name="${side}_shoulder_1"/>
+    <link name="${prefix}/${side}_shoulder_1"/>
 
-    <link name="${side}_shoulder">
+    <link name="${prefix}/${side}_shoulder">
       <visual>
         <origin xyz="${upper_arm_length/2} 0 0" rpy="0 ${PI_DIV_2} 0" />
         <geometry>
@@ -19,9 +19,9 @@
       </visual>
     </link>
       
-    <link name="${side}_elbow_0"/>
+    <link name="${prefix}/${side}_elbow_0"/>
 
-    <link name="${side}_elbow">
+    <link name="${prefix}/${side}_elbow">
       <visual>
         <origin xyz="${forearm_length/2} 0 0" rpy="0 ${PI_DIV_2} 0" />
         <geometry>
@@ -30,9 +30,9 @@
       </visual>
     </link>
 
-    <link name="${side}_wrist_0"/>
+    <link name="${prefix}/${side}_wrist_0"/>
 
-    <link name="${side}_wrist">
+    <link name="${prefix}/${side}_wrist">
       <visual>
         <origin xyz="${hand_length/2} 0 0" rpy="0 0 0" />
         <geometry>
@@ -41,14 +41,14 @@
       </visual>
     </link>
 
-    <link name="${side}_hand"/>
+    <link name="${prefix}/${side}_hand"/>
 
     <!-- Joints -->
 
     <joint name="${side}_arm_mount" type="fixed">
       <origin xyz="0 ${reflect*shoulder_offset_width} ${shoulder_offset_height}" rpy="0 0 ${reflect*PI_DIV_2}" />
-      <parent link="shoulder_center" />
-      <child link="${side}_arm_mount" />
+      <parent link="${prefix}/shoulder_center" />
+      <child link="${prefix}/${side}_arm_mount" />
     </joint>
 
     <!-- SHOULDER : spherical -->
@@ -56,8 +56,8 @@
         <joint name="${side}_shoulder_0" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="0 1 0" />
-          <parent link="${side}_arm_mount" />
-          <child link="${side}_shoulder_0" />
+          <parent link="${prefix}/${side}_arm_mount" />
+          <child link="${prefix}/${side}_shoulder_0" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
 
@@ -65,8 +65,8 @@
           <joint name="left_shoulder_1" type="revolute">
             <origin xyz="0 0 0" rpy="0 0 0" />
             <axis xyz="0 0 1" />
-            <parent link="left_shoulder_0" />
-            <child link="left_shoulder_1" />
+            <parent link="${prefix}/left_shoulder_0" />
+            <child link="${prefix}/left_shoulder_1" />
             <limit lower="${-TPI_DIV_4}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
           </joint>
         </xacro:if>
@@ -74,8 +74,8 @@
           <joint name="right_shoulder_1" type="revolute">
             <origin xyz="0 0 0" rpy="0 0 0" />
             <axis xyz="0 0 1" />
-            <parent link="right_shoulder_0" />
-            <child link="right_shoulder_1" />
+            <parent link="${prefix}/right_shoulder_0" />
+            <child link="${prefix}/right_shoulder_1" />
             <limit lower="${-PI_DIV_2}" upper="${TPI_DIV_4}" effort="${max_effort}" velocity="${max_velocity}"  />
           </joint>
         </xacro:unless>
@@ -83,8 +83,8 @@
         <joint name="${side}_shoulder_2" type="revolute">
           <origin xyz="0 0 0" rpy="0 0 0" />
           <axis xyz="1 0 0" />
-          <parent link="${side}_shoulder_1" />
-          <child link="${side}_shoulder" />
+          <parent link="${prefix}/${side}_shoulder_1" />
+          <child link="${prefix}/${side}_shoulder" />
           <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
         </joint>
     
@@ -93,16 +93,16 @@
       <joint name="left_elbow_0" type="revolute">
         <origin xyz="${upper_arm_length} 0 0" rpy="0 0 0" />
         <axis xyz="0 0 1" />
-        <parent link="left_shoulder" />
-        <child link="left_elbow_0" />
+        <parent link="${prefix}/left_shoulder" />
+        <child link="${prefix}/left_elbow_0" />
         <limit lower="${-PI}" upper="0.0" effort="${max_effort}" velocity="${max_velocity}"  />
       </joint>
 
       <joint name="left_elbow_1" type="revolute">
         <origin xyz="0 0 0" rpy="0 0 0" />
         <axis xyz="1 0 0" />
-        <parent link="left_elbow_0" />
-        <child link="left_elbow" />
+        <parent link="${prefix}/left_elbow_0" />
+        <child link="${prefix}/left_elbow" />
         <limit lower="${-PI}" upper="0.0" effort="${max_effort}" velocity="${max_velocity}"  />
       </joint>
     </xacro:if>
@@ -110,16 +110,16 @@
       <joint name="right_elbow_0" type="revolute">
         <origin xyz="${upper_arm_length} 0 0" rpy="0 0 0" />
         <axis xyz="0 0 1" />
-        <parent link="right_shoulder" />
-        <child link="right_elbow_0" />
+        <parent link="${prefix}/right_shoulder" />
+        <child link="${prefix}/right_elbow_0" />
         <limit lower="0.0" upper="${PI}" effort="${max_effort}" velocity="${max_velocity}"  />
       </joint>
 
       <joint name="right_elbow_1" type="revolute">
         <origin xyz="0 0 0" rpy="0 0 0" />
         <axis xyz="1 0 0" />
-        <parent link="right_elbow_0" />
-        <child link="right_elbow" />
+        <parent link="${prefix}/right_elbow_0" />
+        <child link="${prefix}/right_elbow" />
         <limit lower="0.0" upper="${PI}" effort="${max_effort}" velocity="${max_velocity}"  />
       </joint>
     </xacro:unless>
@@ -127,23 +127,23 @@
     <joint name="${side}_wrist_0" type="revolute">
       <origin xyz="${forearm_length} 0 0" rpy="0 0 0" />
       <axis xyz="0 0 1" />
-      <parent link="${side}_elbow" />
-      <child link="${side}_wrist_0" />
+      <parent link="${prefix}/${side}_elbow" />
+      <child link="${prefix}/${side}_wrist_0" />
       <limit lower="${-PI_DIV_4}" upper="${PI_DIV_4}" effort="${max_effort}" velocity="${max_velocity}"  />
     </joint>
 
     <joint name="${side}_wrist_1" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0" />
       <axis xyz="0 1 0" />
-      <parent link="${side}_wrist_0" />
-      <child link="${side}_wrist" />
+      <parent link="${prefix}/${side}_wrist_0" />
+      <child link="${prefix}/${side}_wrist" />
       <limit lower="${-PI_DIV_2}" upper="${PI_DIV_2}" effort="${max_effort}" velocity="${max_velocity}"  />
     </joint>
 
     <joint name="${side}_hand" type="fixed">
       <origin xyz="${hand_length} 0 0" rpy="0 0 0" />
-      <parent link="${side}_wrist" />
-      <child link="${side}_hand" />
+      <parent link="${prefix}/${side}_wrist" />
+      <child link="${prefix}/${side}_hand" />
     </joint>
 </xacro:macro>
 </robot>
