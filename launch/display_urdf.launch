@@ -3,7 +3,6 @@
 	<arg name="gui" default="False" />
 	<param name="human_description" textfile="$(find human_moveit_config)/urdf/human.urdf" /> 
 	<param name="use_gui" value="$(arg gui)"/>
-	<param name="tf_prefix" type="string" value="/human" />
 	
 	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
 		<remap from="robot_description" to="human_description" />
