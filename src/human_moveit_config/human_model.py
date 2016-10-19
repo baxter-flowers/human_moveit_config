@@ -18,7 +18,7 @@ from copy import deepcopy
 
 
 class HumanModel(object):
-    def __init__(self, description='human_description', nn_with_orient=True):
+    def __init__(self, description='human_description', nn_with_orient=True, prefix='human'):
         rospack = RosPack()
         self.path = rospack.get_path('human_moveit_config')
         self.description = description
@@ -47,25 +47,32 @@ class HumanModel(object):
         self.end_effectors['whole_body'] = self.end_effectors['upper_body'] + self.end_effectors['lower_body']
         # initialize common links per group
         self.group_links = {}
-        self.group_links['head'] = ['shoulder_center', 'head']
+        self.group_links['head'] = [prefix + '/shoulder_center', prefix + '/head']
         # fill the disct of active joints by links
         self.joint_by_links = {}
-        self.joint_by_links['shoulder_center'] = ['spine_0', 'spine_1', 'spine_2']
-        self.joint_by_links['head'] = ['neck_0', 'neck_1', 'neck_2']
+        self.joint_by_links[prefix + '/shoulder_center'] = ['spine_0', 'spine_1', 'spine_2']
+        self.joint_by_links[prefix + '/head'] = ['neck_0', 'neck_1', 'neck_2']
         sides = ['right', 'left']
         for s in sides:
-            self.group_links[s + '_arm'] = [s + '_shoulder', s + '_elbow', s + '_hand']
-            self.group_links[s + '_leg'] = [s + '_hip', s + '_knee', s + '_foot']
+            self.group_links[s + '_arm'] = [prefix + '/' + s + '_shoulder',
+                                            prefix + '/' + s + '_elbow',
+                                            prefix + '/' + s + '_hand']
+            self.group_links[s + '_leg'] = [prefix + '/' + s + '_hip',
+                                            prefix + '/' + s + '_knee',
+                                            prefix + '/' + s + '_foot']
             # arm links
-            self.joint_by_links[s + '_shoulder'] = [s + '_shoulder_0', s + '_shoulder_1', s + '_shoulder_2']
-            self.joint_by_links[s + '_elbow'] = [s + '_elbow_0', s + '_elbow_1']
-            self.joint_by_links[s + '_hand'] = [s + '_wrist_0', s + '_wrist_1']
+            self.joint_by_links[prefix + '/' + s + '_shoulder'] = [s + '_shoulder_0',
+                                                                   s + '_shoulder_1',
+                                                                   s + '_shoulder_2']
+            self.joint_by_links[prefix + '/' + s + '_elbow'] = [s + '_elbow_0', s + '_elbow_1']
+            self.joint_by_links[prefix + '/' + s + '_hand'] = [s + '_wrist_0', s + '_wrist_1']
             # leg links
-            self.joint_by_links[s + '_hip'] = [s + '_hip_0', s + '_hip_1', s + '_hip_2']
-            self.joint_by_links[s + '_knee'] = [s + '_knee']
-            self.joint_by_links[s + '_foot'] = [s + '_ankle_0', s + '_ankle_1']
+            self.joint_by_links[prefix + '/' + s + '_hip'] = [s + '_hip_0', s + '_hip_1', s + '_hip_2']
+            self.joint_by_links[prefix + '/' + s + '_knee'] = [s + '_knee']
+            self.joint_by_links[prefix + '/' + s + '_foot'] = [s + '_ankle_0', s + '_ankle_1']
+        self.prefix = prefix
         self.with_orient = nn_with_orient
-        self.init_nearest_neighbour_trees()
+        # self.init_nearest_neighbour_trees()
 
         rospy.wait_for_service('compute_fk')
         self.compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
@@ -107,7 +114,7 @@ class HumanModel(object):
             try:
                 header = Header()
                 header.stamp = rospy.Time.now()
-                header.frame_id = 'base'
+                header.frame_id = self.prefix + '/base'
                 rs = RobotState()
                 rs.joint_state = joint_state
                 res = self.compute_fk(header, links, rs)
@@ -144,7 +151,7 @@ class HumanModel(object):
                 pose_dict[links[i]] = transformations.pose_to_list(pose_stamped_list[i].pose)
         return pose_dict
 
-    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.1, group_names='whole_body', seed=None):
+    def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.001, group_names='whole_body', seed=None):
         def compute_ik_client():
             rospy.wait_for_service('compute_human_ik')
             try:
