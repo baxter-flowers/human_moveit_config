@@ -66,7 +66,7 @@ class SensorCalibrator(object):
         base_transform = list_calibr[0]
         inv_base = transformations.inverse_transform(base_transform)
         # get pose of the base
-        base_pose = transformations.multiply_transform(self.recorded_poses['base'], inv_base)
+        base_pose = transformations.multiply_transform(self.recorded_poses[self.human.prefix + '/base'], inv_base)
         # calculate cost of the base
         cost += (10 * base_cost(base_pose))
         # loop trough all the transforms
@@ -85,7 +85,7 @@ class SensorCalibrator(object):
         print cost
         return cost
 
-    def calibrate(self, record, frames='all', maxiter=100):
+    def calibrate(self, record, frames='all', maxiter=1000):
         def random_transforms(pos_bounds, rot_bounds):
             flat_transforms = []
             for key in self.keys:
@@ -118,24 +118,24 @@ class SensorCalibrator(object):
         if frames == 'all':
             self.keys = record.keys()
             # remove the hip from the list to put in first position
-            self.keys.remove('base')
+            self.keys.remove(self.human.prefix + '/base')
         else:
             self.keys = frames
-        self.keys = ['base'] + self.keys
+        self.keys = [self.human.prefix + '/base'] + self.keys
         # set limits for search space
         bounds = []
         pos_bounds = [-0.1, 0.1]
         rot_bounds = [-1, 1]
         for key in self.keys:
-            if key == 'base':
+            if key == self.human.prefix + '/base':
                 bounds.append([0.05, 0.2])
                 bounds.append(pos_bounds)
                 bounds.append([-0.01, 0.01])
-            elif key == 'shoulder_center':
+            elif key == self.human.prefix + '/shoulder_center':
                 bounds.append([0.05, 0.2])
                 bounds.append(pos_bounds)
                 bounds.append(pos_bounds)
-            elif key == 'head':
+            elif key == self.human.prefix + '/head':
                 bounds.append([0.05, 0.2])
                 bounds.append(pos_bounds)
                 bounds.append([0.05, 0.2])

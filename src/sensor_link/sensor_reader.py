@@ -8,8 +8,9 @@ import rospkg
 
 
 class SensorReader(object):
-    def __init__(self, calibrated=False):
+    def __init__(self, calibrated=False, prefix='human'):
         rospack = rospkg.RosPack()
+        self.human_prefix = prefix
         self.pkg_dir = rospack.get_path("human_moveit_config")
         self.tfl = tf.TransformListener()
         self.skel_data = {}
@@ -27,14 +28,19 @@ class SensorReader(object):
         self.init_sensor_frames()
 
     def init_sensor_frames(self):
-        self.sensor_frames['kinect'] = ['head', 'neck', 'shoulder_center', 'spine',
-                                        'left_shoulder', 'left_elbow', 'left_wrist', 'left_hand',
-                                        'right_shoulder', 'right_elbow', 'right_wrist', 'right_hand',
-                                        'left_hip', 'left_knee', 'left_ankle', 'left_foot',
-                                        'right_hip', 'right_knee', 'right_ankle', 'right_foot']
-        self.sensor_frames['opt'] = ['head', 'shoulder_center',
-                                     'left_elbow', 'left_hand',
-                                     'right_elbow', 'right_hand']
+        self.sensor_frames['kinect'] = [self.human_prefix + '/head', self.human_prefix + '/neck',
+                                        self.human_prefix + '/shoulder_center', self.human_prefix + '/spine',
+                                        self.human_prefix + '/left_shoulder', self.human_prefix + '/left_elbow',
+                                        self.human_prefix + '/left_wrist', self.human_prefix + '/left_hand',
+                                        self.human_prefix + '/right_shoulder', self.human_prefix + '/right_elbow',
+                                        self.human_prefix + '/right_wrist', self.human_prefix + '/right_hand',
+                                        self.human_prefix + '/left_hip', self.human_prefix + '/left_knee',
+                                        self.human_prefix + '/left_ankle', self.human_prefix + '/left_foot',
+                                        self.human_prefix + '/right_hip', self.human_prefix + '/right_knee',
+                                        self.human_prefix + '/right_ankle', self.human_prefix + '/right_foot']
+        self.sensor_frames['opt'] = [self.human_prefix + '/head', self.human_prefix + '/shoulder_center',
+                                     self.human_prefix + '/left_elbow', self.human_prefix + '/left_hand',
+                                     self.human_prefix + '/right_elbow', self.human_prefix + '/right_hand']
 
     def set_sensor_frames(self, dict_frames):
         self.sensor_frames = dict_frames
@@ -77,16 +83,16 @@ class SensorReader(object):
     def generate_model_from_kinect(self):
         kinect_data = self.skeletons['kinect']
         # extract frame positions
-        p_spine = np.array(kinect_data['spine'][0])
-        p_neck = np.array(kinect_data['neck'][0])
-        p_head = np.array(kinect_data['head'][0])
-        p_shoulder_center = np.array(kinect_data['shoulder_center'][0])
-        p_shoulder = np.array(kinect_data['right_shoulder'][0])
-        p_elbow = np.array(kinect_data['right_elbow'][0])
-        p_wrist = np.array(kinect_data['right_wrist'][0])
-        p_hip = np.array(kinect_data['right_hip'][0])
-        p_knee = np.array(kinect_data['right_knee'][0])
-        p_ankle = np.array(kinect_data['right_ankle'][0])
+        p_spine = np.array(kinect_data[self.human_prefix + '/spine'][0])
+        p_neck = np.array(kinect_data[self.human_prefix + '/neck'][0])
+        p_head = np.array(kinect_data[self.human_prefix + '/head'][0])
+        p_shoulder_center = np.array(kinect_data[self.human_prefix + '/shoulder_center'][0])
+        p_shoulder = np.array(kinect_data[self.human_prefix + '/right_shoulder'][0])
+        p_elbow = np.array(kinect_data[self.human_prefix + '/right_elbow'][0])
+        p_wrist = np.array(kinect_data[self.human_prefix + '/right_wrist'][0])
+        p_hip = np.array(kinect_data[self.human_prefix + '/right_hip'][0])
+        p_knee = np.array(kinect_data[self.human_prefix + '/right_knee'][0])
+        p_ankle = np.array(kinect_data[self.human_prefix + '/right_ankle'][0])
         # calculate the length of the model
         upper_arm_l = float(np.linalg.norm(p_elbow - p_shoulder))
         forearm_l = float(np.linalg.norm(p_wrist - p_elbow))
@@ -129,20 +135,22 @@ class SensorReader(object):
 
     def update_skeleton(self, sensors='all', debug=False):
         def update_frame(target, prefix):
-            base = 'base'
+            base = self.human_prefix + '/base'
             # loop through all the prefixes
             for b_pref in prefix:
                 for t_pref in prefix:
                     # check visibility of frame
-                    if self.tfl.canTransform('/'+b_pref+'/human/'+base, '/'+t_pref+'/human/'+target, rospy.Time(0)):
-                        time = self.tfl.getLatestCommonTime('/'+b_pref+'/human/'+base, '/'+t_pref+'/human/'+target)
+                    if self.tfl.canTransform(b_pref + '/' + base, t_pref + '/' + target,
+                                             rospy.Time(0)):
+                        time = self.tfl.getLatestCommonTime(b_pref + '/' + base,
+                                                            t_pref + '/' + target)
                         if rospy.Time.now() - time < rospy.Duration(0.5):
-                            frame = self.tfl.lookupTransform('/'+b_pref+'/human/'+base,
-                                                             '/'+t_pref+'/human/'+target,
+                            frame = self.tfl.lookupTransform(b_pref + '/' + base,
+                                                             t_pref + '/' + target,
                                                              time)
                             # multiply each transformation by the calibration matrix
                             if self.calibrated:
-                                dot_prod = transformations.multiply_transform(self.calibration[b_pref][base+'/inv'],
+                                dot_prod = transformations.multiply_transform(self.calibration[b_pref][base + '/inv'],
                                                                               frame)
                                 dot_prod = transformations.multiply_transform(dot_prod,
                                                                               self.calibration[t_pref][target])
@@ -156,23 +164,23 @@ class SensorReader(object):
 
         def update_base_frame(prefix):
             for pref in prefix:
-                ref = '/' + self.sensors_ref[pref] + '_frame'
-                if self.tfl.canTransform(ref, '/' + pref + '/human/base', rospy.Time(0)):
-                    time = self.tfl.getLatestCommonTime(ref, '/' + pref + '/human/base')
+                ref = self.sensors_ref[pref] + '_frame'
+                if self.tfl.canTransform(ref, pref + '/' + self.human_prefix + '/base', rospy.Time(0)):
+                    time = self.tfl.getLatestCommonTime(ref, pref + '/' + self.human_prefix + '/base')
                     if rospy.Time.now() - time < rospy.Duration(0.5):
                         frame = self.tfl.lookupTransform(ref,
-                                                         '/' + pref + '/human/base',
+                                                         pref + '/' + self.human_prefix + '/base',
                                                          time)
                         # multiply with the calibration
                         if self.calibrated:
                             dot_prod = transformations.multiply_transform(frame,
-                                                                          self.calibration[pref]['base'])
-                            self.skel_data['base'] = [self.sensors_ref[pref], dot_prod]
+                                                                          self.calibration[pref][self.human_prefix + '/base'])
+                            self.skel_data[self.human_prefix + '/base'] = [self.sensors_ref[pref], dot_prod]
                         else:
-                            self.skel_data['base'] = [self.sensors_ref[pref], frame]
+                            self.skel_data[self.human_prefix + '/base'] = [self.sensors_ref[pref], frame]
                         return True
             if debug:
-                rospy.logwarn('base not visible')
+                rospy.logwarn(self.human_prefix + '/base not visible')
             return False
 
         visible = True
