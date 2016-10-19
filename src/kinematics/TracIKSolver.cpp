@@ -58,12 +58,9 @@ bool TracIKSolver::perform_ik(human_moveit_config::GetHumanIK::Request &request,
                                            request.desired_poses[0].pose.position.y,
                                            request.desired_poses[0].pose.position.z));
 
-  bool seeds_provided = request.seed.name.size() == this->_chain.getNrOfJoints();
-  KDL::JntArray seed(this->_chain.getNrOfJoints());
-  if (seeds_provided)
-    seed = JointState2JntArray(request.seed);
-  
-  rc = this->_tracik_solver.CartToJnt(seeds_provided? seed: *(this->_nominal),
+  this->_tracik_solver.setEpsilon(request.tolerance);
+  bool seed_provided = request.seed.name.size() == this->_chain.getNrOfJoints();
+  rc = this->_tracik_solver.CartToJnt(seed_provided? JointState2JntArray(request.seed): *(this->_nominal),
                                       end_effector_pose, result);
 
   for(uint joint=0; joint<this->_chain.getNrOfJoints(); ++joint) {
