@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="use_kinect" default="True" />
+	<arg name="use_kinect" default="false" />
+	<arg name="launch_rviz" default="false" />
 
 	<rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
-
 	<rosparam command="load" file="$(find human_moveit_config)/tmp/human_length.json" param="human/lengths"/>
 
-
 	<include if="$(arg use_kinect)" file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" />
-
 	<include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" />
 
+	<include file="$(find human_moveit_config)/launch/demo.launch">
+		<arg name="launch_rviz" value="$(arg launch_rviz)"/>
+	</include>
+	
 	<node name="human_tracker" pkg="human_moveit_config" type="human_tracker" output="screen" required="true"/>
+
 </launch>
