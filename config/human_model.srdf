@@ -10,13 +10,13 @@
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     <group name="RightArm">
-        <chain base_link="/human/base" tip_link="/human/right_hand" />
+        <chain base_link="human/base" tip_link="human/right_hand" />
     </group>
     <group name="LeftArm">
-        <chain base_link="/human/base" tip_link="/human/left_hand" />
+        <chain base_link="human/base" tip_link="human/left_hand" />
     </group>
     <group name="Head">
-        <chain base_link="/human/base" tip_link="/human/head" />
+        <chain base_link="human/base" tip_link="human/head" />
     </group>
     <group name="UpperBody">
         <group name="RightArm" />
@@ -24,10 +24,10 @@
         <group name="Head" />
     </group>
     <group name="RightLeg">
-        <chain base_link="/human/base" tip_link="/human/right_foot" />
+        <chain base_link="human/base" tip_link="human/right_foot" />
     </group>
     <group name="LeftLeg">
-        <chain base_link="/human/base" tip_link="/human/left_foot" />
+        <chain base_link="human/base" tip_link="human/left_foot" />
     </group>
     <group name="LowerBody">
         <group name="RightLeg" />
@@ -72,41 +72,41 @@
         <joint name="spine_2" value="0" />
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="/human/right_hand" parent_link="/human/base" group="RightArm" />
-    <end_effector name="/human/left_hand" parent_link="/human/base" group="LeftArm" />
-    <end_effector name="/human/head" parent_link="/human/base" group="Head" />
-    <end_effector name="/human/right_foot" parent_link="/human/base" group="RightLeg" />
-    <end_effector name="/human/left_foot" parent_link="/human/base" group="LeftLeg" />
+    <end_effector name="human/right_hand" parent_link="human/base" group="RightArm" />
+    <end_effector name="human/left_hand" parent_link="human/base" group="LeftArm" />
+    <end_effector name="human/head" parent_link="human/base" group="Head" />
+    <end_effector name="human/right_foot" parent_link="human/base" group="RightLeg" />
+    <end_effector name="human/left_foot" parent_link="human/base" group="LeftLeg" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-    <disable_collisions link1="/human/base" link2="/human/head" reason="Never" />
-    <disable_collisions link1="/human/base" link2="/human/left_hip" reason="Adjacent" />
-    <disable_collisions link1="/human/base" link2="/human/neck" reason="Never" />
-    <disable_collisions link1="/human/base" link2="/human/right_hip" reason="Adjacent" />
-    <disable_collisions link1="/human/base" link2="/human/shoulder_center" reason="Never" />
-    <disable_collisions link1="/human/base" link2="/human/spine" reason="Never" />
-    <disable_collisions link1="/human/base" link2="/human/spine_0" reason="Adjacent" />
-    <disable_collisions link1="/human/head" link2="/human/neck" reason="Adjacent" />
-    <disable_collisions link1="/human/head" link2="/human/shoulder_center" reason="Never" />
-    <disable_collisions link1="/human/head" link2="/human/spine" reason="Never" />
-    <disable_collisions link1="/human/head" link2="/human/spine_0" reason="Never" />
-    <disable_collisions link1="/human/left_ankle" link2="/human/left_knee" reason="Adjacent" />
-    <disable_collisions link1="/human/left_elbow" link2="/human/left_shoulder" reason="Adjacent" />
-    <disable_collisions link1="/human/left_elbow" link2="/human/left_wrist" reason="Adjacent" />
-    <disable_collisions link1="/human/left_hip" link2="/human/left_knee" reason="Adjacent" />
-    <disable_collisions link1="/human/left_hip" link2="/human/spine_0" reason="Never" />
-    <disable_collisions link1="/human/left_shoulder" link2="/human/shoulder_center" reason="Adjacent" />
-    <disable_collisions link1="/human/left_shoulder" link2="/human/spine" reason="Always" />
-    <disable_collisions link1="/human/neck" link2="/human/shoulder_center" reason="Adjacent" />
-    <disable_collisions link1="/human/neck" link2="/human/spine" reason="Never" />
-    <disable_collisions link1="/human/neck" link2="/human/spine_0" reason="Never" />
-    <disable_collisions link1="/human/right_ankle" link2="/human/right_knee" reason="Adjacent" />
-    <disable_collisions link1="/human/right_elbow" link2="/human/right_shoulder" reason="Adjacent" />
-    <disable_collisions link1="/human/right_elbow" link2="/human/right_wrist" reason="Adjacent" />
-    <disable_collisions link1="/human/right_hip" link2="/human/right_knee" reason="Adjacent" />
-    <disable_collisions link1="/human/right_hip" link2="/human/spine_0" reason="Never" />
-    <disable_collisions link1="/human/right_shoulder" link2="/human/shoulder_center" reason="Adjacent" />
-    <disable_collisions link1="/human/right_shoulder" link2="/human/spine" reason="Always" />
-    <disable_collisions link1="/human/shoulder_center" link2="/human/spine" reason="Adjacent" />
-    <disable_collisions link1="/human/shoulder_center" link2="/human/spine_0" reason="Never" />
-    <disable_collisions link1="/human/spine" link2="/human/spine_0" reason="Adjacent" />
+    <disable_collisions link1="human/base" link2="human/head" reason="Never" />
+    <disable_collisions link1="human/base" link2="human/left_hip" reason="Adjacent" />
+    <disable_collisions link1="human/base" link2="human/neck" reason="Never" />
+    <disable_collisions link1="human/base" link2="human/right_hip" reason="Adjacent" />
+    <disable_collisions link1="human/base" link2="human/shoulder_center" reason="Never" />
+    <disable_collisions link1="human/base" link2="human/spine" reason="Never" />
+    <disable_collisions link1="human/base" link2="human/spine_0" reason="Adjacent" />
+    <disable_collisions link1="human/head" link2="human/neck" reason="Adjacent" />
+    <disable_collisions link1="human/head" link2="human/shoulder_center" reason="Never" />
+    <disable_collisions link1="human/head" link2="human/spine" reason="Never" />
+    <disable_collisions link1="human/head" link2="human/spine_0" reason="Never" />
+    <disable_collisions link1="human/left_ankle" link2="human/left_knee" reason="Adjacent" />
+    <disable_collisions link1="human/left_elbow" link2="human/left_shoulder" reason="Adjacent" />
+    <disable_collisions link1="human/left_elbow" link2="human/left_wrist" reason="Adjacent" />
+    <disable_collisions link1="human/left_hip" link2="human/left_knee" reason="Adjacent" />
+    <disable_collisions link1="human/left_hip" link2="human/spine_0" reason="Never" />
+    <disable_collisions link1="human/left_shoulder" link2="human/shoulder_center" reason="Adjacent" />
+    <disable_collisions link1="human/left_shoulder" link2="human/spine" reason="Always" />
+    <disable_collisions link1="human/neck" link2="human/shoulder_center" reason="Adjacent" />
+    <disable_collisions link1="human/neck" link2="human/spine" reason="Never" />
+    <disable_collisions link1="human/neck" link2="human/spine_0" reason="Never" />
+    <disable_collisions link1="human/right_ankle" link2="human/right_knee" reason="Adjacent" />
+    <disable_collisions link1="human/right_elbow" link2="human/right_shoulder" reason="Adjacent" />
+    <disable_collisions link1="human/right_elbow" link2="human/right_wrist" reason="Adjacent" />
+    <disable_collisions link1="human/right_hip" link2="human/right_knee" reason="Adjacent" />
+    <disable_collisions link1="human/right_hip" link2="human/spine_0" reason="Never" />
+    <disable_collisions link1="human/right_shoulder" link2="human/shoulder_center" reason="Adjacent" />
+    <disable_collisions link1="human/right_shoulder" link2="human/spine" reason="Always" />
+    <disable_collisions link1="human/shoulder_center" link2="human/spine" reason="Adjacent" />
+    <disable_collisions link1="human/shoulder_center" link2="human/spine_0" reason="Never" />
+    <disable_collisions link1="human/spine" link2="human/spine_0" reason="Adjacent" />
 </robot>
