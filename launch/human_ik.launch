@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="human_prefix" default="human" />
 
-  <!-- <node name="ik_server" pkg="human_moveit_config" type="ik_server"/> -->
-  <node name="ik_shoulder_center" pkg="human_moveit_config" type="divided_ik_server" args="base shoulder_center /ik/shoulder_center"/>
-  <node name="ik_head" pkg="human_moveit_config" type="divided_ik_server" args="shoulder_center head /ik/head"/>
-  <node name="ik_left_elbow" pkg="human_moveit_config" type="divided_ik_server" args="shoulder_center left_elbow /ik/left_elbow"/>
-  <node name="ik_right_elbow" pkg="human_moveit_config" type="divided_ik_server" args="shoulder_center right_elbow /ik/right_elbow"/>
-  <node name="ik_left_hand" pkg="human_moveit_config" type="divided_ik_server" args="left_elbow left_hand /ik/left_hand"/>
-  <node name="ik_right_hand" pkg="human_moveit_config" type="divided_ik_server" args="right_elbow right_hand /ik/right_hand"/>
+  <node name="ik_shoulder_center" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/base $(arg human_prefix)/shoulder_center /ik/$(arg human_prefix)/shoulder_center" output="screen"/>
+  <node name="ik_head" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/head /ik/$(arg human_prefix)/head" output="screen"/>
+  <node name="ik_left_elbow" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_elbow /ik/$(arg human_prefix)/left_elbow" output="screen"/>
+  <node name="ik_right_elbow" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_elbow /ik/$(arg human_prefix)/right_elbow" output="screen"/>
+  <node name="ik_left_hand" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/left_elbow $(arg human_prefix)/left_hand /ik/$(arg human_prefix)/left_hand" output="screen"/>
+  <node name="ik_right_hand" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/right_elbow $(arg human_prefix)/right_hand /ik/$(arg human_prefix)/right_hand" output="screen"/>
+
+  <node name="ik_server" pkg="human_moveit_config" type="ik_server" output="screen"/>
 
 </launch>
