@@ -21,7 +21,8 @@ class Calibrator(object):
 
     def request_for_t_position(self, sensor, frames_list):
         # modify the list of visible frames
-        self.sensor_reader.sensor_frames[sensor] = frames_list
+        if frames_list is list:
+            self.sensor_reader.sensor_frames[sensor] = frames_list
         while not rospy.is_shutdown():
             rospy.sleep(10)
             os.system('beep')
@@ -93,6 +94,7 @@ class Calibrator(object):
         # write the calibration file
         with open(calibration_file, 'w') as output_file:
             json.dump(dict_calibr, output_file, sort_keys=True, indent=4)
+
 
 if __name__ == '__main__':
     rospy.init_node('sensor_calibrator')
