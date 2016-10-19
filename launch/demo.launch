@@ -32,7 +32,6 @@
   <node name="human_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
     <remap from="robot_description" to="human_description" />
     <remap from="joint_states" to="/human/joint_states" />
-    <param name="tf_prefix" value="/human"/>
   </node>
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
@@ -41,7 +40,6 @@
     <arg name="fake_execution" value="true"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
-    <param name="tf_prefix" value="/human"/>
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
