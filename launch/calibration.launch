@@ -10,6 +10,8 @@
 
     <include file="$(find human_moveit_config)/launch/demo.launch"/>
 
+    <node pkg="tf" type="static_transform_publisher" name="human_broadcaster" args="0. 0. 0. 0. 0. 0. 1. base human/base 100" />
+
     <node name="sensor_calibration" pkg="human_moveit_config" type="sensor_calibration" output="screen"
     args="$(arg sensor) $(arg parameter) $(arg reset_pose)" required="true"/>
 </launch>
