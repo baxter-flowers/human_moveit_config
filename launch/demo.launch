@@ -25,7 +25,7 @@
     <remap from="robot_description" to="human_description" />
     <remap from="joint_states" to="/human/joint_states" />
     <param name="/use_gui" value="false"/>
-    <rosparam param="/source_list">[/human/set_joint_values,/move_group/fake_controller_joint_states]</rosparam>
+    <rosparam param="/source_list">[/human/set_joint_values]</rosparam>
   </node>
 
   <!-- Given the published joint states, publish tf for the robot links -->
@@ -37,7 +37,7 @@
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find human_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
-    <arg name="fake_execution" value="true"/>
+    <arg name="fake_execution" value="false"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
