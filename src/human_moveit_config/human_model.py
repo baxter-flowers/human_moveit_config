@@ -18,12 +18,13 @@ from copy import deepcopy
 
 
 class HumanModel(object):
-    def __init__(self, description='human_description', nn_with_orient=True, prefix='human'):
+    def __init__(self, description='human_description', prefix='human', control=False):
         rospack = RosPack()
         self.path = rospack.get_path('human_moveit_config')
         self.description = description
         self.robot_commander = moveit_commander.RobotCommander(description)
-        self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
+        if control:
+            self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
         self.groups = {}
         self.groups['head'] = moveit_commander.MoveGroupCommander('Head', description)
         self.groups['right_arm'] = moveit_commander.MoveGroupCommander('RightArm', description)
@@ -71,11 +72,10 @@ class HumanModel(object):
             self.joint_by_links[prefix + '/' + s + '_knee'] = [s + '_knee']
             self.joint_by_links[prefix + '/' + s + '_foot'] = [s + '_ankle_0', s + '_ankle_1']
         self.prefix = prefix
-        self.with_orient = nn_with_orient
-        # self.init_nearest_neighbour_trees()
 
         rospy.wait_for_service('compute_fk')
         self.compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
+        self.current_state = self.get_initial_state()
 
     def init_nearest_neighbour_trees(self):
         def load_database(link):
@@ -194,16 +194,15 @@ class HumanModel(object):
             return res
 
     def get_current_state(self):
-        return self.robot_commander.get_current_state().joint_state
+        return self.current_state
 
-    def send_state(self, state, wait=True):
+    def send_state(self, state, wait=False):
         if isinstance(state, RobotState):
             state = state.joint_state
         self.joint_publisher.publish(state)
-        if wait:
-            rospy.sleep(0.1)
+        self.current_state = state
 
-    def send_joint_values(self, joint_names, joint_values, wait=True):
+    def send_joint_values(self, joint_names, joint_values):
         # get the current state
         rs = self.robot_commander.get_current_state()
         js = rs.joint_state
@@ -213,7 +212,7 @@ class HumanModel(object):
             index = js.name.index(joint_names[i])
             position[index] = joint_values[i]
         js.position = position
-        self.send_state(js, wait)
+        self.send_state(js)
 
     def get_joint_by_links(self, group_name, links, fill=True):
         joints = []
@@ -298,7 +297,7 @@ class HumanModel(object):
         return js
 
     def get_initial_state(self):
-        js = self.get_current_state()
+        js = self.robot_commander.get_current_state().joint_state
         # put the model in T pose, i.e all joints values at 0
         js.position = np.zeros(len(js.position))
         return js

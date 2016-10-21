@@ -79,28 +79,7 @@ class IKOptimizer:
             cost += self.cost_factors[1] * self.fixed_joints_cost(q, fixed_joints)
         return cost
 
-    def sub_poses_cost(self, joint_array, dict_values):
-        js = JointState()
-        js.position = joint_array
-        js.name = dict_values['joints']
-        # calculate the fk
-        group = dict_values['frame']
-        fk = self.model.forward_kinematic(js, base=dict_values['base'], links=group)
-        value = fk[group]
-        des_pose = dict_values['pose']
-        cost = self.distance_factor[0] * np.sum((np.array(value[0]) - np.array(des_pose[0]))**2)
-        cost += self.distance_factor[1] * (1 - np.inner(value[1], des_pose[1])**2)
-        return cost
-
-    def keep_current_joints(self, group):
-        joints = self.joint_by_links[group]
-        current_state = self.model.get_current_state()
-        res = []
-        for j in joints:
-            res.append(current_state.position[current_state.name.index(j)])
-        return res
-
-    def compute_sub_ik(self, group, desired_dict, result, tol=1e-5):
+    def compute_sub_ik(self, group, desired_dict, result, tol=0.001):
         # get the desired pose in the correct base frame
         index = self.links.index(group)
         base = self.bases[index]
@@ -111,9 +90,7 @@ class IKOptimizer:
                 inv_base = transformations.inverse_transform(tr_base)
                 desired_pose = transformations.multiply_transform(inv_base, tr)
             else:
-                with self.lock:
-                    result[group] = self.keep_current_joints(group)
-                    return 1
+                return 1
         else:
             desired_pose = tr
 
@@ -123,11 +100,8 @@ class IKOptimizer:
             # call the srv
             res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol)
             joints = res.joint_state.position
-
-        except rospy.ServiceException, e:
-                print "Service call failed: %s" % e
-                # in case of failure return T pose
-                joints = self.keep_current_joints(group)
+        except:
+            return 1
 
         with self.lock:
             result[group] = joints
@@ -195,7 +169,7 @@ class IKOptimizer:
         for i in range(len(threads)):
             threads[i].join()
         # convert restult to a joint state
-        js = self.model.get_current_state()
+        js = req.seed
         js.position = list(js.position)
         js.name = list(js.name)
         # replace joint values with optimized ones

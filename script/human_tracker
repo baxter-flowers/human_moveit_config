@@ -1,13 +1,17 @@
 #!/usr/bin/env python
+from human_moveit_config.human_model import HumanModel
 from sensor_link.sensor_reader import SensorReader
 import tf
 import rospkg
 import json
 import rospy
+import numpy as np
+from collections import deque
+from sensor_msgs.msg import JointState
 
 
 class HumanTracker(object):
-    def __init__(self, rate=50):
+    def __init__(self, rate=10):
         self.rate = rospy.Rate(rate)
         # initialize tf broadcaster
         self.tfb = tf.TransformBroadcaster()
@@ -24,36 +28,66 @@ class HumanTracker(object):
             self.sensor = SensorReader(calibrated=True)
         except KeyError:
             rospy.logerr("Please calibrate before running the human tracker")
+            self.calibrated = False
         else:
             self.calibrated = True
             rospy.loginfo("Skeleton is calibrated!")
+        self.model = HumanModel(control=True)
+        self.prefix = self.model.prefix
+        # create history for joint filtering
+        self.joint_history = deque(maxlen=8)
+
+    def jitter_removal_filter(self, joint_state, eps=1):
+        out_state = JointState()
+        out_state.name = joint_state.name
+        if len(self.joint_history) == self.joint_history.maxlen:
+            joints = np.array(joint_state.position)
+            med = np.median(self.joint_history, axis=0)
+            out_state.position = [(j if abs(j - med[index]) < eps else med[index]) for index, j in enumerate(joints)]
+        else:
+            out_state.position = joint_state.position
+        return out_state
 
     def publish_skeleton(self):
         # update the skeleton
         self.sensor.update_skeleton('opt')
         skeleton = self.sensor.skel_data
-        if 'base' in skeleton.keys():
+        if self.prefix + '/base' in skeleton.keys():
             # get the transformation from sensor_frame to human base
-            frame = skeleton['base']
+            frame = skeleton[self.prefix + '/base']
             SensorTHuman = frame[1]
             # publish it wrt to the sensor frame
+            self.tfb.sendTransform([0, 0, 0], [0, 0, 0, 1],
+                                   rospy.Time.now(), 'tracker/' + self.prefix + '/base', self.prefix + '/base')
             self.tfb.sendTransform(SensorTHuman[0], SensorTHuman[1],
-                                   rospy.Time.now(), '/human/tracker/base', frame[0]+'_frame')
+                                   rospy.Time.now(), self.prefix + '/base', frame[0] + '_frame')
             # loop through all the recorded frames
+            obs_dict = {}
             for key, value in skeleton.iteritems():
-                if key != 'base':
+                if key != self.prefix + '/base':
                     # get the pose wrt to human base
                     pose = value[1]
                     self.tfb.sendTransform(pose[0], pose[1], rospy.Time.now(),
-                                           '/human/tracker/'+key, '/human/tracker/base')
+                                           'tracker/' + key, 'tracker/' + self.prefix + '/base')
+                    obs_dict[key] = value[1]
+            # request the IK
+            js = self.model.inverse_kinematic(obs_dict, tolerance=0.1, seed=self.model.get_current_state())
+            # filter the state based on jitter removal filtering
+            filtered_state = self.jitter_removal_filter(js, eps=0.5)
+            # send the state
+            self.model.send_state(filtered_state)
+            # add the state to history
+            self.joint_history.append(js.position)
 
     def set_tracked_frames(self, dict_frames):
         self.sensor.set_sensor_frames(dict_frames)
 
     def run(self):
-        while not rospy.is_shutdown():
-            self.publish_skeleton()
-            self.rate.sleep()
+        if self.calibrated:
+            while not rospy.is_shutdown():
+                self.publish_skeleton()
+                self.rate.sleep()
+
 
 if __name__ == '__main__':
     rospy.init_node('human_tracker')
