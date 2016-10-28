@@ -194,13 +194,14 @@ class HumanModel(object):
             return res
 
     def get_current_state(self):
-        return self.current_state
+        return deepcopy(self.current_state)
 
     def send_state(self, state, wait=False):
         if isinstance(state, RobotState):
             state = state.joint_state
         self.joint_publisher.publish(state)
-        self.current_state = state
+        for i, joint in enumerate(state.name):
+            self.current_state.position[self.current_state.name.index(joint)] = state.position[i]
 
     def send_joint_values(self, joint_names, joint_values):
         # get the current state
