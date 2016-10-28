@@ -75,10 +75,9 @@ class SensorCalibrator(object):
             # get the fk
             fk = self.fk[key]
             # compute the corresponding transformation from recorded data
-            # pose = transformations.multiply_transform(inv_base, self.recorded_poses[key])
-            # pose = transformations.multiply_transform(pose, list_calibr[i])
             pose = transformations.multiply_transform(base_transform, self.recorded_poses[key])
             pose = transformations.multiply_transform(pose, transformations.inverse_transform(list_calibr[i]))
+            pose[1] /= np.linalg.norm(pose[1])
             # compute the cost based on the distance
             cost += distance_cost(fk, pose)
 
