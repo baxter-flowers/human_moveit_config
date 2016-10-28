@@ -4,6 +4,8 @@
 	<param name="human_description" textfile="$(find human_moveit_config)/urdf/human.urdf" /> 
 	<param name="use_gui" value="$(arg gui)"/>
 	
+	<node pkg="tf" type="static_transform_publisher" name="human_broadcaster" args="0. 0. 0. 0. 0. 0. 1. /base /human/base 100" />
+
 	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
 		<remap from="robot_description" to="human_description" />
 		<remap from="joint_states" to="/human/joint_states" />
