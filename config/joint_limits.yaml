@@ -17,11 +17,6 @@ joint_limits:
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  left_elbow_1:
-    has_velocity_limits: true
-    max_velocity: 1
-    has_acceleration_limits: false
-    max_acceleration: 0
   left_hip_0:
     has_velocity_limits: true
     max_velocity: 1
@@ -37,7 +32,7 @@ joint_limits:
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  left_knee:
+  left_knee_0:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
@@ -63,6 +58,11 @@ joint_limits:
     has_acceleration_limits: false
     max_acceleration: 0
   left_wrist_1:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  left_wrist_2:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
@@ -97,11 +97,6 @@ joint_limits:
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  right_elbow_1:
-    has_velocity_limits: true
-    max_velocity: 1
-    has_acceleration_limits: false
-    max_acceleration: 0
   right_hip_0:
     has_velocity_limits: true
     max_velocity: 1
@@ -117,7 +112,7 @@ joint_limits:
     max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
-  right_knee:
+  right_knee_0:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false
@@ -143,6 +138,11 @@ joint_limits:
     has_acceleration_limits: false
     max_acceleration: 0
   right_wrist_1:
+    has_velocity_limits: true
+    max_velocity: 1
+    has_acceleration_limits: false
+    max_acceleration: 0
+  right_wrist_2:
     has_velocity_limits: true
     max_velocity: 1
     has_acceleration_limits: false

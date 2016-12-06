@@ -8,9 +8,9 @@ controller_list:
       - right_shoulder_1
       - right_shoulder_2
       - right_elbow_0
-      - right_elbow_1
       - right_wrist_0
       - right_wrist_1
+      - right_wrist_2
   - name: fake_LeftArm_controller
     joints:
       - spine_0
@@ -20,9 +20,9 @@ controller_list:
       - left_shoulder_1
       - left_shoulder_2
       - left_elbow_0
-      - left_elbow_1
       - left_wrist_0
       - left_wrist_1
+      - left_wrist_2
   - name: fake_Head_controller
     joints:
       - spine_0
@@ -40,9 +40,9 @@ controller_list:
       - left_shoulder_1
       - left_shoulder_2
       - left_elbow_0
-      - left_elbow_1
       - left_wrist_0
       - left_wrist_1
+      - left_wrist_2
       - neck_0
       - neck_1
       - neck_2
@@ -50,15 +50,15 @@ controller_list:
       - right_shoulder_1
       - right_shoulder_2
       - right_elbow_0
-      - right_elbow_1
       - right_wrist_0
       - right_wrist_1
+      - right_wrist_2
   - name: fake_RightLeg_controller
     joints:
       - right_hip_0
       - right_hip_1
       - right_hip_2
-      - right_knee
+      - right_knee_0
       - right_ankle_0
       - right_ankle_1
   - name: fake_LeftLeg_controller
@@ -66,7 +66,7 @@ controller_list:
       - left_hip_0
       - left_hip_1
       - left_hip_2
-      - left_knee
+      - left_knee_0
       - left_ankle_0
       - left_ankle_1
   - name: fake_LowerBody_controller
@@ -74,13 +74,13 @@ controller_list:
       - left_hip_0
       - left_hip_1
       - left_hip_2
-      - left_knee
+      - left_knee_0
       - left_ankle_0
       - left_ankle_1
       - right_hip_0
       - right_hip_1
       - right_hip_2
-      - right_knee
+      - right_knee_0
       - right_ankle_0
       - right_ankle_1
   - name: fake_WholeBody_controller
@@ -92,9 +92,9 @@ controller_list:
       - left_shoulder_1
       - left_shoulder_2
       - left_elbow_0
-      - left_elbow_1
       - left_wrist_0
       - left_wrist_1
+      - left_wrist_2
       - neck_0
       - neck_1
       - neck_2
@@ -102,18 +102,18 @@ controller_list:
       - right_shoulder_1
       - right_shoulder_2
       - right_elbow_0
-      - right_elbow_1
       - right_wrist_0
       - right_wrist_1
+      - right_wrist_2
       - left_hip_0
       - left_hip_1
       - left_hip_2
-      - left_knee
+      - left_knee_0
       - left_ankle_0
       - left_ankle_1
       - right_hip_0
       - right_hip_1
       - right_hip_2
-      - right_knee
+      - right_knee_0
       - right_ankle_0
       - right_ankle_1

@@ -42,31 +42,32 @@
         <joint name="left_ankle_0" value="0" />
         <joint name="left_ankle_1" value="0" />
         <joint name="left_elbow_0" value="0" />
-        <joint name="left_elbow_1" value="0" />
         <joint name="left_hip_0" value="0" />
         <joint name="left_hip_1" value="0" />
         <joint name="left_hip_2" value="0" />
-        <joint name="left_knee" value="0" />
+        <joint name="left_knee_0" value="0" />
         <joint name="left_shoulder_0" value="0" />
         <joint name="left_shoulder_1" value="0" />
         <joint name="left_shoulder_2" value="0" />
         <joint name="left_wrist_0" value="0" />
+        <joint name="left_wrist_1" value="0" />
+        <joint name="left_wrist_2" value="0" />
         <joint name="neck_0" value="0" />
         <joint name="neck_1" value="0" />
         <joint name="neck_2" value="0" />
         <joint name="right_ankle_0" value="0" />
         <joint name="right_ankle_1" value="0" />
         <joint name="right_elbow_0" value="0" />
-        <joint name="right_elbow_1" value="0" />
         <joint name="right_hip_0" value="0" />
         <joint name="right_hip_1" value="0" />
         <joint name="right_hip_2" value="0" />
-        <joint name="right_knee" value="0" />
+        <joint name="right_knee_0" value="0" />
         <joint name="right_shoulder_0" value="0" />
         <joint name="right_shoulder_1" value="0" />
         <joint name="right_shoulder_2" value="0" />
         <joint name="right_wrist_0" value="0" />
         <joint name="right_wrist_1" value="0" />
+        <joint name="right_wrist_2" value="0" />
         <joint name="spine_0" value="0" />
         <joint name="spine_1" value="0" />
         <joint name="spine_2" value="0" />

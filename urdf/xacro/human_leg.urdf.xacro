@@ -76,7 +76,7 @@
     
     <!-- END hip -->
 
-    <joint name="${side}_knee" type="revolute">
+    <joint name="${side}_knee_0" type="revolute">
       <origin xyz="${thigh_length} 0 0" rpy="${PI_DIV_2} 0 0" />
       <axis xyz="0 0 1" />
       <parent link="${prefix}/${side}_hip" />

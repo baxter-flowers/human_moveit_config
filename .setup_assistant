@@ -5,4 +5,4 @@ moveit_setup_assistant_config:
   SRDF:
     relative_path: config/human_model.srdf
   CONFIG:
-    generated_timestamp: 1476780718
+    generated_timestamp: 1481040586
