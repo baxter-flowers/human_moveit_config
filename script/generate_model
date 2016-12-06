@@ -65,6 +65,7 @@ class ModelGenerator(object):
                 dict_calibr[key] = self.sensor_calibr.calibrate(value)
         print dict_calibr
 
+
 if __name__ == '__main__':
     rospy.init_node('model_generator')
     generator = ModelGenerator(sys.argv[1] == 'True')
