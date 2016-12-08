@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+from subprocess import check_call
+import rospy
+
+
+def start_launchfile(pkg, launchfile, args=[]):
+    command = ['roslaunch', pkg, launchfile + '.launch']
+    command += args
+    check_call(command)
+
+
+def do_again(task):
+    rospy.loginfo('Redo ' + task + '? y/N')
+    return (raw_input() == 'y')
+
+
+def generate_model():
+    if do_again('model generation'):
+        rospy.loginfo('Generating Human model, press enter when subject is ready')
+        raw_input()
+        start_launchfile('human_moveit_config', 'generate_model')
+
+
+def generate_calibration(sensor, type_calibr='full'):
+    sensors_key = {}
+    sensors_key['kinect'] = 'kinect'
+    sensors_key['optitrack'] = 'opt'
+    if do_again(sensor + ' calibration'):
+        rospy.loginfo('Generating Human calibrations, press enter when subject is ready')
+        raw_input()
+        args = ['sensor:=' + sensors_key[sensor], 'reset_pose:=True', 'parameter:=' + type_calibr]
+        start_launchfile('human_moveit_config', 'calibration', args)
+
+
+if __name__ == '__main__':
+    rospy.init_node('human_calibration')
+    rospy.logwarn('Starting recording human calibration')
+    generate_model()
+    generate_calibration('kinect')
+    generate_calibration('optitrack')
+    rospy.logwarn('Calibration finished')
