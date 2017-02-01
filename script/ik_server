@@ -6,6 +6,7 @@ import rospy
 
 def main():
     rospy.init_node('human_ik_srv')
+    rospy.sleep(5)
     opti = IKOptimizer()
     rospy.Service('compute_human_ik', GetHumanIK, opti.handle_compute_ik_divided)
     print "Ready to compute IK"

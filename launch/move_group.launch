@@ -78,6 +78,6 @@
     <remap from="joint_states" to="/human/joint_states" />
   </node>
 
-  <node name="ik_server" pkg="human_moveit_config" type="ik_server"/>
+  <!-- <include ns="move_group" file="$(find human_moveit_config)/launch/human_ik.launch"/> -->
 
 </launch>

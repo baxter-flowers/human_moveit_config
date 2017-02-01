@@ -50,7 +50,7 @@ class HumanTracker(object):
 
     def publish_skeleton(self):
         # update the skeleton
-        self.sensor.update_skeleton('opt')
+        self.sensor.update_skeleton('all')
         skeleton = self.sensor.skel_data
         if self.prefix + '/base' in skeleton.keys():
             # get the transformation from sensor_frame to human base
@@ -73,7 +73,7 @@ class HumanTracker(object):
             # request the IK
             js = self.model.inverse_kinematic(obs_dict, tolerance=0.1, seed=self.model.get_current_state())
             # filter the state based on jitter removal filtering
-            filtered_state = self.jitter_removal_filter(js, eps=0.5)
+            filtered_state = self.jitter_removal_filter(js, eps=1)
             # send the state
             self.model.send_state(filtered_state)
             # add the state to history

@@ -11,16 +11,13 @@ import transformations
 import numpy as np
 from human_moveit_config.srv import GetJacobian
 from human_moveit_config.srv import GetHumanIK
-from scipy.spatial import cKDTree
-from rospkg import RosPack
-from os.path import join
 from copy import deepcopy
+import re
+from human_moveit_config.urdf_reader import URDFReader
 
 
 class HumanModel(object):
     def __init__(self, description='human_description', prefix='human', control=False):
-        rospack = RosPack()
-        self.path = rospack.get_path('human_moveit_config')
         self.description = description
         self.robot_commander = moveit_commander.RobotCommander(description)
         if control:
@@ -46,60 +43,21 @@ class HumanModel(object):
         self.end_effectors['lower_body'] = [self.end_effectors['right_leg'],
                                             self.end_effectors['left_leg']]
         self.end_effectors['whole_body'] = self.end_effectors['upper_body'] + self.end_effectors['lower_body']
-        # initialize common links per group
-        self.group_links = {}
-        self.group_links['head'] = [prefix + '/shoulder_center', prefix + '/head']
-        # fill the disct of active joints by links
-        self.joint_by_links = {}
-        self.joint_by_links[prefix + '/shoulder_center'] = ['spine_0', 'spine_1', 'spine_2']
-        self.joint_by_links[prefix + '/head'] = ['neck_0', 'neck_1', 'neck_2']
-        sides = ['right', 'left']
-        for s in sides:
-            self.group_links[s + '_arm'] = [prefix + '/' + s + '_shoulder',
-                                            prefix + '/' + s + '_elbow',
-                                            prefix + '/' + s + '_hand']
-            self.group_links[s + '_leg'] = [prefix + '/' + s + '_hip',
-                                            prefix + '/' + s + '_knee',
-                                            prefix + '/' + s + '_foot']
-            # arm links
-            self.joint_by_links[prefix + '/' + s + '_shoulder'] = [s + '_shoulder_0',
-                                                                   s + '_shoulder_1',
-                                                                   s + '_shoulder_2']
-            self.joint_by_links[prefix + '/' + s + '_elbow'] = [s + '_elbow_0', s + '_elbow_1']
-            self.joint_by_links[prefix + '/' + s + '_hand'] = [s + '_wrist_0', s + '_wrist_1']
-            # leg links
-            self.joint_by_links[prefix + '/' + s + '_hip'] = [s + '_hip_0', s + '_hip_1', s + '_hip_2']
-            self.joint_by_links[prefix + '/' + s + '_knee'] = [s + '_knee']
-            self.joint_by_links[prefix + '/' + s + '_foot'] = [s + '_ankle_0', s + '_ankle_1']
         self.prefix = prefix
+        self.urdf_reader = URDFReader()
 
         rospy.wait_for_service('compute_fk')
         self.compute_fk = rospy.ServiceProxy('compute_fk', GetPositionFK)
         self.current_state = self.get_initial_state()
 
-    def init_nearest_neighbour_trees(self):
-        def load_database(link):
-            database = np.load(join(self.path, 'database8', 'database_' + link + '.npz'))
-            data_dict = {}
-            data_dict['data'] = database
-            if self.with_orient:
-                data_dict['tree'] = cKDTree(database['data'][:, -7:])
-            else:
-                data_dict['tree'] = cKDTree(database['data'][:, -7:-4])
-            return data_dict
-        self.trees = {}
-        links = ['head', 'shoulder_center']
-        for s in ['right', 'left']:
-            links += [s + '_elbow', s + '_hand']
-        for l in links:
-            self.trees[l] = load_database(l)
+    def find_common_root(self, link1, link2):
+        return self.urdf_reader.find_common_root(link1, link2)
 
-    def get_group_of_link(self, link):
-        for key, value in self.group_links.iteritems():
-            if link in value:
-                group = key
-                break
-        return group
+    def get_links_chain(self, from_link, to_link):
+        return self.urdf_reader.get_links_chain(from_link, to_link)
+
+    def get_joints_chain(self, from_link, to_link):
+        return self.urdf_reader.get_joints_chain(from_link, to_link)
 
     def extract_group_joints(self, group_name, joint_state):
         active = self.groups[group_name].get_active_joints()
@@ -215,24 +173,6 @@ class HumanModel(object):
         js.position = position
         self.send_state(js)
 
-    def get_joint_by_links(self, group_name, links, fill=True):
-        joints = []
-        if type(links) is not list:
-            links = [links]
-        link_names = self.group_links[group_name]
-        for i in range(len(links)):
-            supposed_index = link_names.index(links[i])
-            if supposed_index == i or not fill:
-                joints += self.joint_by_links[links[i]]
-            else:
-                for j in range(i, supposed_index + 1):
-                    link = link_names[j]
-                    joints += self.joint_by_links[link]
-        # remove dupblicates
-        seen = set()
-        seen_add = seen.add
-        return [x for x in joints if not (x in seen or seen_add(x))]
-
     def move_group_by_joints(self, group_name, joint_values):
         joint_names = self.groups[group_name].get_active_joints()
         self.send_joint_values(joint_names, joint_values, wait=True)
@@ -316,9 +256,17 @@ class HumanModel(object):
                 res = compute_jac(group_name, link, js, p, use_quaternion)
                 # reorganize the jacobian
                 jac_array = np.array(res.jacobian).reshape((res.nb_rows, res.nb_cols))
-                return jac_array
+                # reorder the jacobian wrt to the joint state
+                ordered_jac = np.zeros((len(jac_array), len(joint_state.name)))
+                for i, n in enumerate(js.name):
+                    ordered_jac[:, joint_state.name.index(n)] = jac_array[:, i]
+                return ordered_jac
             except rospy.ServiceException, e:
                 print "Service call failed: %s" % e
+        #  compute the jacobian only for chains
+        # if group_name not in ['right_arm', 'left_arm', 'head', 'right_leg', 'left_leg']:
+        #     rospy.logerr('The Jacobian matrix can only be computed on kinematic chains')
+        #     return []
         # assign values
         if link is None:
             link = self.end_effectors[group_name]
@@ -343,3 +291,16 @@ class HumanModel(object):
             state.position += joints
             state.name += joint_names
         return state
+
+    def get_segment_poses(self, joint_state, groups):
+        regex = re.compile('_\d')
+        segments = []
+        fk_dict = self.forward_kinematic(joint_state, links='all')
+        for g in groups:
+            chain = self.get_link_names(g)
+            filtered = [i for i in chain if not regex.search(i)]
+            seg_dict = {}
+            seg_dict['links'] = filtered
+            seg_dict['poses'] = [fk_dict[i] for i in filtered]
+            segments.append(seg_dict)
+        return segments

@@ -1,11 +1,8 @@
 #!/usr/bin/env python
-import numpy as np
-from scipy.optimize import minimize
 from .human_model import HumanModel
 from human_moveit_config.srv import GetHumanIKResponse
 from human_moveit_config.srv import GetHumanIK
 import transformations
-from sensor_msgs.msg import JointState
 from threading import Thread
 from threading import Lock
 import rospy
@@ -33,12 +30,10 @@ class IKOptimizer:
                       self.prefix + '/right_elbow']
 
         self.joint_by_links = {}
-        for l in self.links:
-            self.joint_by_links[l] = self.model.joint_by_links[l]
-        for s in ['right', 'left']:
-            link = self.prefix + '/' + s + '_elbow'
-            self.joint_by_links[link] = (self.model.joint_by_links[self.prefix + '/' + s + '_shoulder'] +
-                                         self.joint_by_links[link])
+        for i, l in enumerate(self.links):
+            self.joint_by_links[l] = self.model.get_joints_chain(l, self.bases[i])
+
+        print self.joint_by_links
 
         self.lock = Lock()
         self.div_ik_srv = {}
@@ -46,38 +41,6 @@ class IKOptimizer:
             rospy.wait_for_service('/ik/' + l)
             print 'ready ' + l
             self.div_ik_srv[l] = rospy.ServiceProxy('/ik/' + l, GetHumanIK)
-
-    def fixed_joints_cost(self, joint_array, dict_values):
-        cost = 0
-        for key, value in dict_values.iteritems():
-            if key in self.joint_names:
-                cost += (joint_array[self.joint_names.index(key)] - value)**2
-        return cost
-
-    def desired_poses_cost(self, joint_array, dict_values):
-        # get the forward kinematic of the whole body at specified links
-        js = JointState()
-        js.name = self.joint_names
-        js.position = joint_array
-        fk = self.model.forward_kinematic(js, links=dict_values.keys())
-        # loop through all the current poses and compare it with desired ones
-        cost = 0
-        for key, value in fk.iteritems():
-            # extract the desired pose
-            des_pose = dict_values[key]
-            # calcualte distance in position
-            cost += self.distance_factor[0] * np.sum((np.array(value[0]) - np.array(des_pose[0]))**2)
-            # calcualte distance in rotation
-            cost += self.distance_factor[1] * (1 - np.inner(value[1], des_pose[1])**2)
-        return cost
-
-    def cost_function(self, q, desired_poses={}, fixed_joints={}):
-        cost = 0
-        if desired_poses:
-            cost += self.cost_factors[0] * self.desired_poses_cost(q, desired_poses)
-        if fixed_joints:
-            cost += self.cost_factors[1] * self.fixed_joints_cost(q, fixed_joints)
-        return cost
 
     def compute_sub_ik(self, group, desired_dict, result, tol=0.001):
         # get the desired pose in the correct base frame
@@ -99,62 +62,20 @@ class IKOptimizer:
         try:
             # call the srv
             res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol)
-            joints = res.joint_state.position
+            joint_state = res.joint_state
         except:
             return 1
 
         with self.lock:
-            result[group] = joints
-
-    def handle_compute_ik(self, req):
-        joint_names_set = set()
-        # get the number of joints according to the required group
-        for g in req.group_names:
-            joint_names_set.update(self.model.get_joint_names(g))
-        self.joint_names = list(joint_names_set)
-        # convert the desired poses to dict
-        desired_dict = {}
-        for pose in req.desired_poses:
-            desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
-        # convert the fixed joint state to dict
-        fixed_joints_dict = {}
-        for i in range(len(req.fixed_joints.name)):
-            fixed_joints_dict[req.fixed_joints.name[i]] = req.fixed_joints.position[i]
-        # get initial state
-        init_state = req.seed
-        # get only joints to optimize
-        init_joints = []
-        for name in self.joint_names:
-            init_joints.append(init_state.position[init_state.name.index(name)])
-        # get the joints limits for the optimization
-        joint_limits = self.model.get_joint_limits(self.joint_names)
-        # optimize to find the corresponding IK
-        res = minimize(self.cost_function, init_joints,
-                       # jac=self.jacobian_cost_function,
-                       args=(desired_dict, fixed_joints_dict, ),
-                       method='L-BFGS-B',
-                       bounds=joint_limits)
-        opt_joints = list(res.x)
-        # convert it to a joint state
-        js = self.model.get_current_state()
-        js.position = list(js.position)
-        js.name = list(js.name)
-        # replace joint values with optimized ones
-        for i in range(len(self.joint_names)):
-            name = self.joint_names[i]
-            js.position[js.name.index(name)] = opt_joints[i]
-        # replace fixed values
-        for key, value in fixed_joints_dict.iteritems():
-            js.position[js.name.index(key)] = value
-        # return server reply
-        return GetHumanIKResponse(js)
+            result[group] = {'joint_names': joint_state.name, 'joint_values': joint_state.position}
 
     def handle_compute_ik_divided(self, req):
-        nb_frames = len(req.desired_poses)
         # convert the desired poses to dict
         desired_dict = {}
         for pose in req.desired_poses:
-            desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
+            if pose.header.frame_id in self.links:
+                desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
+        nb_frames = len(desired_dict.keys())
         # convert the fixed joint state to dict
         fixed_joints_dict = {}
         for i in range(len(req.fixed_joints.name)):
@@ -174,8 +95,8 @@ class IKOptimizer:
         js.name = list(js.name)
         # replace joint values with optimized ones
         for key, value in results.iteritems():
-            for i, name in enumerate(self.joint_by_links[key]):
-                js.position[js.name.index(name)] = value[i]
+            for name in self.joint_by_links[key]:
+                js.position[js.name.index(name)] = value['joint_values'][value['joint_names'].index(name)]
         # replace fixed values
         for key, value in fixed_joints_dict.iteritems():
             js.position[js.name.index(key)] = value

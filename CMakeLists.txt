@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   trac_ik_lib
   eigen_conversions
+  urdfdom_py
 )
 
 find_package(Eigen REQUIRED)
