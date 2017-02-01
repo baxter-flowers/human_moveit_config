@@ -1,27 +1,44 @@
 #!/usr/bin/env python
 from tools.udp_link import UDPLink
 import numpy as np
+from copy import deepcopy
 
 
 class UnityBridge(object):
     def __init__(self, ip="BAXTERFLOWERS.local", port=5005):
-        self.udp = udp = UDPLink(ip, port)
+        self.udp = UDPLink(ip, port)
         self.corresp_dict = {}
         self.base_vector = np.zeros(92)
         self.init_dict()
 
     def init_dict(self):
         # create the base vector that contains all the offsets
-        self.base_vector[18] = 0.6
-        self.base_vector[21] = 1.0
-        self.base_vector[26] = 0.6
-        self.base_vector[29] = 1.0
-        self.base_vector[36] = 0.4
-        self.base_vector[37] = 0.3
-        self.base_vector[39] = 1.0
-        self.base_vector[45] = 0.4
-        self.base_vector[46] = 0.3
-        self.base_vector[48] = 1.0
+        self.base_vector[18] = 0.16
+        self.base_vector[20] = 0.02
+        self.base_vector[21] = 0.44
+        self.base_vector[22] = -0.03
+        self.base_vector[23] = 0.01
+
+        self.base_vector[26] = 0.16
+        self.base_vector[28] = 0.02
+        self.base_vector[29] = 0.44
+        self.base_vector[30] = -0.03
+        self.base_vector[31] = 0.01
+
+        self.base_vector[36] = 0.22
+        self.base_vector[37] = 0.16
+        self.base_vector[38] = -0.09
+        self.base_vector[39] = 0.48
+        self.base_vector[40] = 0.06
+        self.base_vector[41] = 0.02
+
+        self.base_vector[45] = 0.22
+        self.base_vector[46] = 0.16
+        self.base_vector[47] = -0.09
+        self.base_vector[48] = 0.48
+        self.base_vector[49] = 0.06
+        self.base_vector[50] = 0.02
+
         self.base_vector[52] = -1.33
         self.base_vector[53] = -0.29
         self.base_vector[54] = 0.64
@@ -68,8 +85,8 @@ class UnityBridge(object):
         self.corresp_dict['spine_2'] = [2, 1]
 
         self.corresp_dict['neck_0'] = [7, 1]
-        self.corresp_dict['neck_1'] = [6, 1]
-        self.corresp_dict['neck_2'] = [8, 1]
+        self.corresp_dict['neck_1'] = [6, -1]
+        self.corresp_dict['neck_2'] = [8, -1]
 
         self.corresp_dict['left_knee_0'] = [21, 1]
         self.corresp_dict['right_knee_0'] = [29, 1]
@@ -90,6 +107,33 @@ class UnityBridge(object):
 
         self.corresp_dict['right_elbow_0'] = [48, -1]
 
-        self.corresp_dict['right_wirst_0'] = [51, 1]
+        self.corresp_dict['right_wrist_0'] = [51, 1]
         self.corresp_dict['right_wrist_1'] = [50, -1]
         self.corresp_dict['right_wrist_2'] = [49, -1]
+
+    def send_joint_values(self, joint_names, values):
+        if type(joint_names) is str:
+            joint_names = [joint_names]
+        if type(values) in [float, int]:
+            values = [values]
+        assert len(joint_names) == len(values)
+
+        vect = deepcopy(self.base_vector)
+        for i in range(len(joint_names)):
+            try:
+                params = self.corresp_dict[joint_names[i]]
+                # vect[params[0]] = (params[1] * values[i] + vect[params[0]]) / (np.pi + vect[params[0]])
+                vect[params[0]] += (params[1] * values[i]) / (np.pi + vect[params[0]])
+                # vect[params[0]] += (params[1] * values[i]) / (np.pi)
+            except:
+                continue
+        self.udp.send_float_vector('/posture', vect)
+
+    def send_state(self, joint_state):
+        self.send_joint_values(joint_state.name, joint_state.position)
+
+    def activate_camera(self, cam_id):
+        self.udp.send_int('/camera', cam_id)
+
+    def activate_model(self, model_id):
+        self.udp.send_int('/model', model_id)
