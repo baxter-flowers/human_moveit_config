@@ -32,9 +32,6 @@ class IKOptimizer:
         self.joint_by_links = {}
         for i, l in enumerate(self.links):
             self.joint_by_links[l] = self.model.get_joints_chain(l, self.bases[i])
-
-        print self.joint_by_links
-
         self.lock = Lock()
         self.div_ik_srv = {}
         for l in self.links:

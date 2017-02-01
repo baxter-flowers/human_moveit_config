@@ -8,10 +8,13 @@ import rospy
 import numpy as np
 from collections import deque
 from sensor_msgs.msg import JointState
+from tools.unity_bridge import UnityBridge
+from trajectories.joint_trajectories import trapezoidal_speed_trajectory
 
 
 class HumanTracker(object):
     def __init__(self, rate=10):
+        self.inner_rate = rate
         self.rate = rospy.Rate(rate)
         # initialize tf broadcaster
         self.tfb = tf.TransformBroadcaster()
@@ -36,6 +39,8 @@ class HumanTracker(object):
         self.prefix = self.model.prefix
         # create history for joint filtering
         self.joint_history = deque(maxlen=8)
+        self.bridge = UnityBridge()
+        self.previous_state = self.model.get_current_state()
 
     def jitter_removal_filter(self, joint_state, eps=1):
         out_state = JointState()
@@ -47,6 +52,16 @@ class HumanTracker(object):
         else:
             out_state.position = joint_state.position
         return out_state
+
+    def send_trajectory(self, joint_state, nb_points=10):
+        traj_rate = rospy.Rate(self.inner_rate * nb_points)
+        path = trapezoidal_speed_trajectory(joint_state, self.previous_state, 1, 0.2, nb_points)
+        for p in path.points:
+            state = JointState()
+            state.name = path.joint_names
+            state.position = p.positions
+            self.bridge.send_state(state)
+            traj_rate.sleep()
 
     def publish_skeleton(self):
         # update the skeleton
@@ -76,7 +91,9 @@ class HumanTracker(object):
             filtered_state = self.jitter_removal_filter(js, eps=1)
             # send the state
             self.model.send_state(filtered_state)
+            self.send_trajectory(filtered_state)
             # add the state to history
+            self.previous_state = filtered_state
             self.joint_history.append(js.position)
 
     def set_tracked_frames(self, dict_frames):
