@@ -81,8 +81,8 @@ class UnityBridge(object):
         self.base_vector[91] = 0.81
         # create the dict for each joints with change of sign and vector index
         self.corresp_dict['spine_0'] = [1, 1]
-        self.corresp_dict['spine_1'] = [0, 1]
-        self.corresp_dict['spine_2'] = [2, 1]
+        self.corresp_dict['spine_1'] = [0, -1]
+        self.corresp_dict['spine_2'] = [2, -1]
 
         self.corresp_dict['neck_0'] = [7, 1]
         self.corresp_dict['neck_1'] = [6, -1]
@@ -107,9 +107,9 @@ class UnityBridge(object):
 
         self.corresp_dict['right_elbow_0'] = [48, -1]
 
-        self.corresp_dict['right_wrist_0'] = [51, 1]
+        self.corresp_dict['right_wrist_0'] = [51, -1]
         self.corresp_dict['right_wrist_1'] = [50, -1]
-        self.corresp_dict['right_wrist_2'] = [49, -1]
+        self.corresp_dict['right_wrist_2'] = [49, 1]
 
     def send_joint_values(self, joint_names, values):
         if type(joint_names) is str:
