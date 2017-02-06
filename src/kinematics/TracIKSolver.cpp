@@ -1,7 +1,7 @@
 #include "TracIKSolver.hpp"
 
 TracIKSolver::TracIKSolver(const string& chain_start, const string& chain_end, const string& urdf_param, double timeout):
-_tracik_solver(chain_start, chain_end, urdf_param, timeout, 1e-5){
+_tracik_solver(chain_start, chain_end, urdf_param, timeout, 1e-5, TRAC_IK::Distance){
 	KDL::JntArray ll, ul; //lower joint limits, upper joint limits
 
   if(!(this->_tracik_solver.getKDLChain(this->_chain))) {
@@ -66,5 +66,6 @@ bool TracIKSolver::perform_ik(human_moveit_config::GetHumanIK::Request &request,
   for(uint joint=0; joint<this->_chain.getNrOfJoints(); ++joint) {
     response.joint_state.position.push_back(result(joint));
   }
-  return (rc>=0);
+  // return (rc>=0);
+  return true;
 }
