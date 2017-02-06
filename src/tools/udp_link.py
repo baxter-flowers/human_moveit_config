@@ -12,6 +12,19 @@ class UDPLink(object):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
         sock.sendto(data, (self.ip, self.port))
 
+    def send_string(self, channel, string_value):
+        self._send_data(channel)
+        self._send_data(string_value)
+
+    def send_string_vector(self, channel, vect):
+        # concatenate the list in one string
+        string_value = ""
+        for s in vect:
+            string_value += (s + "|")
+        # remove last delimiter
+        string_value = string_value[:-1]
+        self.send_string(channel, string_value)
+
     def send_int(self, channel, int_value):
         # send channel
         self._send_data(channel)

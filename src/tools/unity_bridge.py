@@ -137,3 +137,6 @@ class UnityBridge(object):
 
     def activate_model(self, model_id):
         self.udp.send_int('/model', model_id)
+
+    def activate_risk_frames(self, frame_list):
+        self.udp.send_string_vector('/risk', frame_list)
