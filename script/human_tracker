@@ -86,9 +86,10 @@ class HumanTracker(object):
                                            'tracker/' + key, 'tracker/' + self.prefix + '/base')
                     obs_dict[key] = value[1]
             # request the IK
-            js = self.model.inverse_kinematic(obs_dict, tolerance=0.1, seed=self.model.get_current_state())
+            js = self.model.inverse_kinematic(obs_dict, tolerance=0.2, seed=self.model.get_current_state())
             # filter the state based on jitter removal filtering
-            filtered_state = self.jitter_removal_filter(js, eps=1)
+            filtered_state = self.jitter_removal_filter(js, eps=0.1)
+            # filtered_state = js
             # send the state
             self.model.send_state(filtered_state)
             self.send_trajectory(filtered_state)
