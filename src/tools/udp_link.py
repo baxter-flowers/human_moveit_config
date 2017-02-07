@@ -8,13 +8,23 @@ class UDPLink(object):
         self.ip = ip
         self.port = port
 
-    def _send_data(self, data):
+    def _send_data(self, channel, data, string_pattern):
+        str_pat = 'I'
+        if string_pattern != 's':
+            str_pat += string_pattern
+            packer = struct.Struct(str_pat)
+            sent_vect = [channel] + data
+            packed_data = packer.pack(*sent_vect)
+        else:
+            packer = struct.Struct(str_pat)
+            sent_vect = [channel]
+            packed_data = packer.pack(*sent_vect)
+            packed_data += data
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-        sock.sendto(data, (self.ip, self.port))
+        sock.sendto(packed_data, (self.ip, self.port))
 
     def send_string(self, channel, string_value):
-        self._send_data(channel)
-        self._send_data(string_value)
+        self._send_data(channel, string_value, 's')
 
     def send_string_vector(self, channel, vect):
         # concatenate the list in one string
@@ -26,16 +36,7 @@ class UDPLink(object):
         self.send_string(channel, string_value)
 
     def send_int(self, channel, int_value):
-        # send channel
-        self._send_data(channel)
-        self._send_data(struct.pack('I', int_value))
+        self._send_data(channel, int_value, 'I')
 
     def send_float_vector(self, channel, vect):
-        # send channel
-        self._send_data(channel)
-        # create string pattern
-        string_pattern = ('f ' * len(vect))[:-1]
-        packer = struct.Struct(string_pattern)
-        packed_data = packer.pack(*vect)
-        # send the array
-        self._send_data(packed_data)
+        self._send_data(channel, vect, ('f' * len(vect)))
