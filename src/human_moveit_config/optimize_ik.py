@@ -17,16 +17,20 @@ class IKOptimizer:
         self.distance_factor = [1, 3]
         self.links = [self.prefix + '/shoulder_center',
                       self.prefix + '/head',
+                      # self.prefix + '/left_shoulder',
                       self.prefix + '/left_elbow',
                       self.prefix + '/left_hand',
+                      # self.prefix + '/right_shoulder',
                       self.prefix + '/right_elbow',
                       self.prefix + '/right_hand']
 
         self.bases = [self.prefix + '/base',
                       self.prefix + '/shoulder_center',
                       self.prefix + '/shoulder_center',
+                      # self.prefix + '/left_shoulder',
                       self.prefix + '/left_elbow',
                       self.prefix + '/shoulder_center',
+                      # self.prefix + '/right_shoulder'
                       self.prefix + '/right_elbow']
 
         self.joint_by_links = {}
@@ -39,7 +43,7 @@ class IKOptimizer:
             print 'ready ' + l
             self.div_ik_srv[l] = rospy.ServiceProxy('/ik/' + l, GetHumanIK)
 
-    def compute_sub_ik(self, group, desired_dict, result, tol=0.001):
+    def compute_sub_ik(self, group, desired_dict, result, tol=0.1):
         # get the desired pose in the correct base frame
         index = self.links.index(group)
         base = self.bases[index]
@@ -56,12 +60,13 @@ class IKOptimizer:
 
         # transform it back to PoseStamped
         desired_pose = transformations.list_to_pose(desired_pose)
-        try:
+        # try:
             # call the srv
-            res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol)
-            joint_state = res.joint_state
-        except:
-            return 1
+        res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol)
+        joint_state = res.joint_state
+        # except Exception, e:
+        #     print e
+        #     return 1
 
         with self.lock:
             result[group] = {'joint_names': joint_state.name, 'joint_values': joint_state.position}

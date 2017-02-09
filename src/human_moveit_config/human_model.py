@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import xmltodict
-import moveit_commander
+from moveit_commander import MoveGroupCommander
+from moveit_commander import RobotCommander
 from moveit_msgs.srv import GetPositionFK
 from moveit_msgs.msg import RobotState
 from sensor_msgs.msg import JointState
@@ -19,18 +20,18 @@ from human_moveit_config.urdf_reader import URDFReader
 class HumanModel(object):
     def __init__(self, description='human_description', prefix='human', control=False):
         self.description = description
-        self.robot_commander = moveit_commander.RobotCommander(description)
+        self.robot_commander = RobotCommander(description)
         if control:
             self.joint_publisher = rospy.Publisher('/human/set_joint_values', JointState, queue_size=1)
         self.groups = {}
-        self.groups['head'] = moveit_commander.MoveGroupCommander('Head', description)
-        self.groups['right_arm'] = moveit_commander.MoveGroupCommander('RightArm', description)
-        self.groups['left_arm'] = moveit_commander.MoveGroupCommander('LeftArm', description)
-        self.groups['right_leg'] = moveit_commander.MoveGroupCommander('RightLeg', description)
-        self.groups['left_leg'] = moveit_commander.MoveGroupCommander('LeftLeg', description)
-        self.groups['upper_body'] = moveit_commander.MoveGroupCommander('UpperBody', description)
-        self.groups['lower_body'] = moveit_commander.MoveGroupCommander('LowerBody', description)
-        self.groups['whole_body'] = moveit_commander.MoveGroupCommander('WholeBody', description)
+        self.groups['head'] = MoveGroupCommander('Head', description)
+        self.groups['right_arm'] = MoveGroupCommander('RightArm', description)
+        self.groups['left_arm'] = MoveGroupCommander('LeftArm', description)
+        self.groups['right_leg'] = MoveGroupCommander('RightLeg', description)
+        self.groups['left_leg'] = MoveGroupCommander('LeftLeg', description)
+        self.groups['upper_body'] = MoveGroupCommander('UpperBody', description)
+        self.groups['lower_body'] = MoveGroupCommander('LowerBody', description)
+        self.groups['whole_body'] = MoveGroupCommander('WholeBody', description)
         # initialize end-effectors dict
         self.end_effectors = {}
         # fill both dict
