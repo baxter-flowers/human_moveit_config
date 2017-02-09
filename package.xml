@@ -29,6 +29,7 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>moveit_msgs</run_depend>
   <run_depend>moveit_ros_move_group</run_depend>
+  <run_depend>moveit_commander</run_depend>
   <run_depend>moveit_planners_ompl</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>joint_state_publisher</run_depend>
