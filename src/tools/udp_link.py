@@ -29,10 +29,13 @@ class UDPLink(object):
     def send_string_vector(self, channel, vect):
         # concatenate the list in one string
         string_value = ""
-        for s in vect:
-            string_value += (s + "|")
-        # remove last delimiter
-        string_value = string_value[:-1]
+        if vect:
+            for s in vect:
+                string_value += (s + "|")
+            # remove last delimiter
+            string_value = string_value[:-1]
+        else:
+            string_value = "none"
         self.send_string(channel, string_value)
 
     def send_int(self, channel, int_value):

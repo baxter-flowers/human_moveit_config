@@ -115,17 +115,8 @@ class UnityBridge(object):
         self.corresp_dict['joints'] = joints_dict
 
         # create the dict for correspondance link
-        links_dict = {}
-        links_dict['spine'] = 'Spine'
-        links_dict['neck'] = 'Neck'
-        links_dict['left_shoulder'] = 'LeftArm'
-        links_dict['right_shoulder'] = 'RightArm'
-        links_dict['left_elbow'] = 'LeftForeArm'
-        links_dict['right_elbow'] = 'RightForeArm'
-        links_dict['left_wrist'] = 'LeftHand'
-        links_dict['right_wrist'] = 'RightHand'
-
-        self.corresp_dict['links'] = links_dict
+        self.corresp_dict['links'] = ['spine', 'neck', 'left_shoulder', 'right_shoulder',
+                                      'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist']
 
         # create the dict for channel correspondances
         channel_dict = {}
@@ -166,7 +157,7 @@ class UnityBridge(object):
         chan = self.corresp_dict['channels']['/model']
         self.udp.send_int(chan, model_id)
 
-    def activate_risk_frames(self, frame_list):
-        sent_list = [self.corresp_dict['links'][f] for f in frame_list]
+    def activate_risk_frames(self, risk_dict):
+        sent_vect = [risk_dict[f] for f in self.corresp_dict['links']]
         chan = self.corresp_dict['channels']['/risk']
-        self.udp.send_string_vector(chan, sent_list)
+        self.udp.send_float_vector(chan, sent_vect)
