@@ -38,7 +38,7 @@ class HumanTracker(object):
         self.model = HumanModel(control=True)
         self.prefix = self.model.prefix
         # create history for joint filtering
-        self.joint_history = deque(maxlen=8)
+        self.joint_history = deque(maxlen=4)
         self.bridge = UnityBridge()
         self.previous_state = self.model.get_current_state()
 
@@ -88,7 +88,7 @@ class HumanTracker(object):
             # request the IK
             js = self.model.inverse_kinematic(obs_dict, tolerance=0.2, seed=self.model.get_current_state())
             # filter the state based on jitter removal filtering
-            filtered_state = self.jitter_removal_filter(js, eps=0.1)
+            filtered_state = self.jitter_removal_filter(js, eps=0.2)
             # filtered_state = js
             # send the state
             self.model.send_state(filtered_state)
