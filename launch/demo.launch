@@ -53,4 +53,5 @@
     <arg name="moveit_warehouse_database_path" value="$(arg db_path)"/>
   </include>
 
+  <include file="$(find human_moveit_config)/launch/human_ik.launch"/>
 </launch>
