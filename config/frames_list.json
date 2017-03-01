@@ -6,5 +6,9 @@
 	"opt": {
 		"light": ["human/shoulder_center", "human/head", "human/right_hand", "human/left_hand"],
 		"full": "all"
+	},
+	"inertial": {
+		"light": ["human/right_shoulder", "human/right_elbow"],
+		"full": "all"
 	}
 }

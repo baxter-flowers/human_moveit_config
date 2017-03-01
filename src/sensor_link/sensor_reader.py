@@ -39,8 +39,12 @@ class SensorReader(object):
                                         self.human_prefix + '/right_hip', self.human_prefix + '/right_knee',
                                         self.human_prefix + '/right_ankle', self.human_prefix + '/right_foot']
         self.sensor_frames['opt'] = [self.human_prefix + '/head', self.human_prefix + '/shoulder_center',
-                                     self.human_prefix + '/left_elbow', self.human_prefix + '/left_hand',
-                                     self.human_prefix + '/right_elbow', self.human_prefix + '/right_hand']
+                                     self.human_prefix + '/left_elbow', self.human_prefix + '/right_elbow',
+                                     # self.human_prefix + '/left_shoulder', self.human_prefix + '/right_shoulder',
+                                     self.human_prefix + '/left_hand', self.human_prefix + '/right_hand']
+        self.sensor_frames['inertial'] = [self.human_prefix + '/right_shoulder', self.human_prefix + '/right_elbow',
+                                          self.human_prefix + '/left_shoulder', self.human_prefix + '/left_elbow',
+                                          self.human_prefix + '/shoulder_center']
 
     def set_sensor_frames(self, dict_frames):
         self.sensor_frames = dict_frames
