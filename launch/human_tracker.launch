@@ -16,7 +16,4 @@
 	</include>
 	
 	<node name="human_tracker" pkg="human_moveit_config" type="human_tracker" output="screen" required="true"/>
-
-	<include file="$(find human_moveit_config)/launch/human_ik.launch"/>
-
 </launch>
