@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="use_timer" default="True" />
+    <arg name="length_file" default="record" />
 
     <rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
     
     <include file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" />
 
-    <node name="human_calibration" pkg="human_moveit_config" type="generate_model" output="screen" args="$(arg use_timer)" required="true"/>
+    <node name="human_calibration" pkg="human_moveit_config" type="generate_model" output="screen" args="$(arg use_timer) $(arg length_file)" required="true"/>
 
     <include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" />
 </launch>

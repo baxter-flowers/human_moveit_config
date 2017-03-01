@@ -35,8 +35,15 @@ class ModelGenerator(object):
         with open(filename, 'w') as output_file:
             json.dump(self.sensor.skeletons, output_file, sort_keys=True, indent=4)
 
-    def create_urdf(self, output_param='/human_description'):
-        str_lengths = {k: str(v) for k, v in self.sensor.lengths.iteritems()}
+    def create_urdf(self, output_param='/human_description', human_lengths={}):
+        # record the skeleton if not provided by file
+        if not human_lengths:
+            # record skeleton data
+            generator.request_for_t_position()
+            human_lengths = self.sensor.lengths
+
+        # substitute the length in xacro
+        str_lengths = {k: str(v) for k, v in human_lengths.iteritems()}
         xacro.set_substitution_args_context(str_lengths)
 
         with open(self.rospack.get_path("human_moveit_config") + "/urdf/xacro/human_skeleton.urdf.xacro") as f:
@@ -69,7 +76,9 @@ class ModelGenerator(object):
 if __name__ == '__main__':
     rospy.init_node('model_generator')
     generator = ModelGenerator(sys.argv[1] == 'True')
-    # record skeleton data
-    generator.request_for_t_position()
+    source_file = sys.argv[2]
+    if source_file != "record":
+        with open(source_file) as datafile:
+            human_lengths = json.load(datafile)
     # create URDF file
-    generator.create_urdf()
+    generator.create_urdf(human_lengths=human_lengths)
