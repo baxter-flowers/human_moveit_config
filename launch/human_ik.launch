@@ -1,13 +1,26 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="human_prefix" default="human" />
+  <arg name="use_tracik" default="True" />
+  <arg name="use_optim_ik" default="False" />
 
-  <node name="ik_shoulder_center" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/base $(arg human_prefix)/shoulder_center /ik/$(arg human_prefix)/shoulder_center" output="screen"/>
-  <node name="ik_head" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/head /ik/$(arg human_prefix)/head" output="screen"/>
-  <node name="ik_left_elbow" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_elbow /ik/$(arg human_prefix)/left_elbow" output="screen"/>
-  <node name="ik_right_elbow" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_elbow /ik/$(arg human_prefix)/right_elbow" output="screen"/>
-  <node name="ik_left_hand" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/left_elbow $(arg human_prefix)/left_hand /ik/$(arg human_prefix)/left_hand" output="screen"/>
-  <node name="ik_right_hand" pkg="human_moveit_config" type="divided_ik_server" args="$(arg human_prefix)/right_elbow $(arg human_prefix)/right_hand /ik/$(arg human_prefix)/right_hand" output="screen"/>
+  <group if="$(arg use_tracik)">
+	  <!-- <node name="ik_shoulder_center" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/base $(arg human_prefix)/shoulder_center /ik/tracik/$(arg human_prefix)/shoulder_center" output="screen"/> -->
+	  <!-- <node name="ik_left_elbow" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_elbow /ik/tracik/$(arg human_prefix)/left_elbow" output="screen"/>
+	  <node name="ik_right_elbow" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_elbow /ik/tracik/$(arg human_prefix)/right_elbow" output="screen"/> -->
+	  <node name="ik_head_tracik" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/base $(arg human_prefix)/head /ik/tracik/$(arg human_prefix)/head" output="screen"/>
+	  <node name="ik_left_hand_tracik" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_hand /ik/tracik/$(arg human_prefix)/left_hand" output="screen"/>
+	  <node name="ik_right_hand_tracik" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_hand /ik/tracik/$(arg human_prefix)/right_hand" output="screen"/>
+  </group>
+
+  <group if="$(arg use_optim_ik)">
+	  <!-- <node name="ik_shoulder_center" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/base $(arg human_prefix)/shoulder_center /ik/optim/$(arg human_prefix)/shoulder_center" output="screen"/>
+	  <node name="ik_left_elbow" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_elbow /ik/optim/$(arg human_prefix)/left_elbow" output="screen"/>
+	  <node name="ik_right_elbow" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_elbow /ik/optim/$(arg human_prefix)/right_elbow" output="screen"/> -->
+	  <node name="ik_head_optim" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/base $(arg human_prefix)/head /ik/optim/$(arg human_prefix)/head" output="screen"/>
+	  <node name="ik_left_hand_optim" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_hand /ik/optim/$(arg human_prefix)/left_hand" output="screen"/>
+	  <node name="ik_right_hand_optim" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_hand /ik/optim/$(arg human_prefix)/right_hand" output="screen"/>
+  </group>
 
   <node name="ik_server" pkg="human_moveit_config" type="ik_server" output="screen"/>
 

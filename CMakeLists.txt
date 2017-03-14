@@ -152,9 +152,9 @@ target_link_libraries(jacobian_server
 )
 
 FILE(GLOB SRCFILES_IK ${PROJECT_SOURCE_DIR}/src/kinematics/*.cpp ${PROJECT_SOURCE_DIR}/src/kinematics/*.hpp)
-add_executable(divided_ik_server ${SRCFILES_IK})
+add_executable(tracik_server ${SRCFILES_IK})
 
-target_link_libraries(divided_ik_server
+target_link_libraries(tracik_server
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )

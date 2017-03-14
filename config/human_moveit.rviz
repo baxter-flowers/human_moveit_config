@@ -44,10 +44,8 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base:
-          Value: false
         human/base:
-          Value: false
+          Value: true
         human/head:
           Value: false
         human/left_ankle:
@@ -134,145 +132,24 @@ Visualization Manager:
           Value: false
         human/spine_2:
           Value: false
-        kinect/human/base:
-          Value: false
-        kinect/human/head:
-          Value: false
-        kinect/human/left_ankle:
-          Value: false
-        kinect/human/left_elbow:
-          Value: false
-        kinect/human/left_foot:
-          Value: false
-        kinect/human/left_hand:
-          Value: false
-        kinect/human/left_hip:
-          Value: false
-        kinect/human/left_knee:
-          Value: false
-        kinect/human/left_shoulder:
-          Value: false
-        kinect/human/left_wrist:
-          Value: false
-        kinect/human/neck:
-          Value: false
-        kinect/human/right_ankle:
-          Value: false
-        kinect/human/right_elbow:
-          Value: false
-        kinect/human/right_foot:
-          Value: false
-        kinect/human/right_hand:
-          Value: false
-        kinect/human/right_hip:
-          Value: false
-        kinect/human/right_knee:
-          Value: false
-        kinect/human/right_shoulder:
-          Value: false
-        kinect/human/right_wrist:
-          Value: false
-        kinect/human/shoulder_center:
-          Value: false
-        kinect/human/spine:
-          Value: false
-        kinect_frame:
-          Value: false
-        optitrack_frame:
-          Value: false
-        tracker/human/base:
-          Value: false
-        tracker/human/head:
-          Value: false
-        tracker/human/left_ankle:
-          Value: false
-        tracker/human/left_elbow:
-          Value: false
-        tracker/human/left_foot:
-          Value: false
-        tracker/human/left_hand:
-          Value: false
-        tracker/human/left_hip:
-          Value: false
-        tracker/human/left_knee:
-          Value: false
-        tracker/human/left_shoulder:
-          Value: false
-        tracker/human/left_wrist:
-          Value: false
-        tracker/human/neck:
-          Value: false
-        tracker/human/right_ankle:
-          Value: false
-        tracker/human/right_elbow:
-          Value: false
-        tracker/human/right_foot:
-          Value: false
-        tracker/human/right_hand:
-          Value: false
-        tracker/human/right_hip:
-          Value: false
-        tracker/human/right_knee:
-          Value: false
-        tracker/human/right_shoulder:
-          Value: false
-        tracker/human/right_wrist:
-          Value: false
-        tracker/human/shoulder_center:
-          Value: false
-        tracker/human/spine:
-          Value: false
+        rec_human/head:
+          Value: true
+        rec_human/left_elbow:
+          Value: true
+        rec_human/left_hand:
+          Value: true
+        rec_human/right_elbow:
+          Value: true
+        rec_human/right_hand:
+          Value: true
+        rec_human/shoulder_center:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        base:
-          optitrack_frame:
-            kinect_frame:
-              kinect/human/base:
-                {}
-              kinect/human/head:
-                {}
-              kinect/human/left_ankle:
-                {}
-              kinect/human/left_elbow:
-                {}
-              kinect/human/left_foot:
-                {}
-              kinect/human/left_hand:
-                {}
-              kinect/human/left_hip:
-                {}
-              kinect/human/left_knee:
-                {}
-              kinect/human/left_shoulder:
-                {}
-              kinect/human/left_wrist:
-                {}
-              kinect/human/neck:
-                {}
-              kinect/human/right_ankle:
-                {}
-              kinect/human/right_elbow:
-                {}
-              kinect/human/right_foot:
-                {}
-              kinect/human/right_hand:
-                {}
-              kinect/human/right_hip:
-                {}
-              kinect/human/right_knee:
-                {}
-              kinect/human/right_shoulder:
-                {}
-              kinect/human/right_wrist:
-                {}
-              kinect/human/shoulder_center:
-                {}
-              kinect/human/spine:
-                {}
         human/base:
           human/left_leg_mount:
             human/left_hip_0:
@@ -322,47 +199,18 @@ Visualization Manager:
                                   human/right_wrist:
                                     human/right_hand:
                                       {}
-          tracker/human/base:
-            tracker/human/head:
-              {}
-            tracker/human/left_ankle:
-              {}
-            tracker/human/left_elbow:
-              {}
-            tracker/human/left_foot:
-              {}
-            tracker/human/left_hand:
-              {}
-            tracker/human/left_hip:
-              {}
-            tracker/human/left_knee:
-              {}
-            tracker/human/left_shoulder:
-              {}
-            tracker/human/left_wrist:
-              {}
-            tracker/human/neck:
-              {}
-            tracker/human/right_ankle:
-              {}
-            tracker/human/right_elbow:
-              {}
-            tracker/human/right_foot:
-              {}
-            tracker/human/right_hand:
-              {}
-            tracker/human/right_hip:
-              {}
-            tracker/human/right_knee:
-              {}
-            tracker/human/right_shoulder:
-              {}
-            tracker/human/right_wrist:
-              {}
-            tracker/human/shoulder_center:
-              {}
-            tracker/human/spine:
-              {}
+          rec_human/head:
+            {}
+          rec_human/left_elbow:
+            {}
+          rec_human/left_hand:
+            {}
+          rec_human/right_elbow:
+            {}
+          rec_human/right_hand:
+            {}
+          rec_human/shoulder_center:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -598,22 +446,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.73138
+      Distance: 3.46823
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.95324
-        Y: -0.0454063
+        X: 0.538056
+        Y: 0.404695
         Z: 1.3061e-06
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.359797
+      Pitch: 0.214797
       Target Frame: hip
       Value: ThirdPersonFollower (rviz)
-      Yaw: 0.0172278
+      Yaw: 1.23224
     Saved: ~
 Window Geometry:
   Displays:
@@ -627,5 +475,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1535
-  X: 65
+  X: 1985
   Y: 24

@@ -6,7 +6,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	ros::init(argc, argv, "divided_ik_srv");
+	ros::init(argc, argv, "tracik_srv");
 	ros::AsyncSpinner spinner(1);
     spinner.start();
 

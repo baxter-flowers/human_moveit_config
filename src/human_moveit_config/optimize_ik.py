@@ -11,44 +11,42 @@ from time import time
 
 
 class IKOptimizer:
-    def __init__(self):
+    def __init__(self, type_ik="tracik"):
         self.model = HumanModel()
         self.prefix = self.model.prefix
         # set the cost factors (end_effectors, fixed_joints)
         self.cost_factors = [1, 1]
         self.distance_factor = [1, 3]
-        self.links = [self.prefix + '/shoulder_center',
-                      self.prefix + '/head',
-                      # self.prefix + '/left_shoulder',
-                      self.prefix + '/left_elbow',
-                      self.prefix + '/left_hand',
-                      # self.prefix + '/right_shoulder',
-                      self.prefix + '/right_elbow',
-                      self.prefix + '/right_hand']
+        # self.links = [self.prefix + '/shoulder_center',
+        #               self.prefix + '/head',
+        #               self.prefix + '/left_elbow',
+        #               self.prefix + '/left_hand',
+        #               self.prefix + '/right_elbow',
+        #               self.prefix + '/right_hand']
 
-        self.bases = [self.prefix + '/base',
-                      self.prefix + '/shoulder_center',
-                      self.prefix + '/shoulder_center',
-                      # self.prefix + '/left_shoulder',
-                      self.prefix + '/left_elbow',
-                      self.prefix + '/shoulder_center',
-                      # self.prefix + '/right_shoulder'
-                      self.prefix + '/right_elbow']
+        # self.bases = [self.prefix + '/base',
+        #               self.prefix + '/shoulder_center',
+        #               self.prefix + '/shoulder_center',
+        #               self.prefix + '/left_elbow',
+        #               self.prefix + '/shoulder_center',
+        #               self.prefix + '/right_elbow']
+        self.links = {}
+        self.links[self.prefix + '/head'] = self.prefix + '/base'
+        self.links[self.prefix + '/left_hand'] = self.prefix + '/shoulder_center'
+        self.links[self.prefix + '/right_hand'] = self.prefix + '/shoulder_center'
 
         self.joint_by_links = {}
-        for i, l in enumerate(self.links):
-            self.joint_by_links[l] = self.model.get_joints_chain(l, self.bases[i])
+        for key, value in self.links.iteritems():
+            self.joint_by_links[key] = self.model.get_joints_chain(key, value)
         self.lock = Lock()
         self.div_ik_srv = {}
-        for l in self.links:
-            rospy.wait_for_service('/ik/' + l)
-            print 'ready ' + l
-            self.div_ik_srv[l] = rospy.ServiceProxy('/ik/' + l, GetHumanIK)
+        for l in self.links.keys():
+            rospy.wait_for_service('/ik/' + type_ik + '/' + l)
+            self.div_ik_srv[l] = rospy.ServiceProxy('/ik/' + type_ik + '/' + l, GetHumanIK)
 
     def compute_sub_ik(self, group, desired_dict, result, tol=0.1):
         # get the desired pose in the correct base frame
-        index = self.links.index(group)
-        base = self.bases[index]
+        base = self.links[group]
         tr = desired_dict[group]
         if desired_dict:
             base_found = False
@@ -90,7 +88,6 @@ class IKOptimizer:
         # except Exception, e:
         #     print e
         #     return 1
-
         with self.lock:
             result[group] = {'joint_names': joint_state.name, 'joint_values': joint_state.position}
 
@@ -98,7 +95,7 @@ class IKOptimizer:
         # convert the desired poses to dict
         desired_dict = {}
         for pose in req.desired_poses:
-            if pose.header.frame_id in self.links:
+            if pose.header.frame_id in self.links.keys():
                 desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
         nb_frames = len(desired_dict.keys())
         # convert the fixed joint state to dict
