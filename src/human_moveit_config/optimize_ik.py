@@ -6,6 +6,8 @@ import transformations
 from threading import Thread
 from threading import Lock
 import rospy
+from sensor_msgs.msg import JointState
+from time import time
 
 
 class IKOptimizer:
@@ -48,18 +50,39 @@ class IKOptimizer:
         index = self.links.index(group)
         base = self.bases[index]
         tr = desired_dict[group]
-        if base != self.prefix + '/base':
-            if base in desired_dict.keys():
-                tr_base = desired_dict[base]
-                inv_base = transformations.inverse_transform(tr_base)
-                desired_pose = transformations.multiply_transform(inv_base, tr)
+        if desired_dict:
+            base_found = False
+            if base != self.prefix + '/base':
+                if base in desired_dict.keys():
+                    base_found = True
+                    tr_base = desired_dict[base]
+                else:
+                    # look for the base in already calculated results
+                    timeout = 0.25
+                    start = time()
+                    while not base_found and not rospy.is_shutdown() and (time() - start < timeout):
+                        with self.lock:
+                            for key, value in result.iteritems():
+                                if base in self.model.get_links_chain(self.links[key], key):
+                                    base_found = True
+                                    js = JointState()
+                                    js.name = value['joint_names']
+                                    js.position = value['joint_values']
+                                    # call the forward kinematic
+                                    fk = self.model.forward_kinematic(js, links=base)
+                                    tr_base = fk[base]
+                if base_found:
+                    inv_base = transformations.inverse_transform(tr_base)
+                    desired_pose = transformations.multiply_transform(inv_base, tr)
+                else:
+                    return 1
             else:
-                return 1
+                desired_pose = tr
         else:
-            desired_pose = tr
-
+            return 1
         # transform it back to PoseStamped
         desired_pose = transformations.list_to_pose(desired_pose)
+        desired_pose.header.frame_id = base
         # try:
             # call the srv
         res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol)
