@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+from human_moveit_config.human_model import HumanModel
+import rospy
+import numpy as np
+from tf.transformations import quaternion_inverse
+from tf.transformations import quaternion_multiply
+from human_moveit_config.srv import GetHumanIKResponse
+from human_moveit_config.srv import GetHumanIK
+import sys
+from scipy.optimize import minimize
+from transformations import pose_to_list
+from sensor_msgs.msg import JointState
+
+
+class OptimIK(object):
+    def __init__(self, base, eef):
+        self.model = HumanModel()
+        self.base_name = base
+        self.eef_name = eef
+        self.weights = [3, 2, 10, 5]
+        self.rotation_weight = 1
+        self.joint_history = []
+        self.eef_history = []
+        self.joint_names = self.model.get_joints_chain(self.base_name, self.eef_name)
+
+    def _cost_function(self, q, desired_pose):
+        def quat_log(q):
+            q_log = q[-1] * q[:-1]
+            q_log = q_log.tolist()
+            q_log += [0]
+            return q_log
+
+        def pose_diff(c_pose, des_pose):
+            pos_cost = np.linalg.norm(np.array(c_pose[0]) - np.array(des_pose[0]))
+            rot_disp = quat_log(quaternion_multiply(quaternion_inverse(np.array(c_pose[1])), np.array(des_pose[1])))
+            rot_cost = np.linalg.norm(rot_disp)
+            return self.weights[0] * pos_cost + self.rotation_weight * self.weights[1] * rot_cost
+        # get the FK of the model
+        js = JointState()
+        js.position = q
+        js.name = self.joint_names
+        fk = self.model.forward_kinematic(js, base=self.base_name, links=self.eef_name)
+        # calculate the cost
+        cost = 0
+        cost += pose_diff(fk[self.eef_name], desired_pose)
+        return cost
+
+    def handle_optim_ik(self, req):
+        def cons_bounds(x):
+            return abs(x - 3.14159)
+        desired_pose = req.desired_poses[0]
+        q_init = [req.seed.position[req.seed.name.index(j)] for j in self.joint_names]
+        # generate constraints
+        cons = ({'type': 'ineq', 'fun': cons_bounds})
+        # call the minimize function from scipy
+        res = minimize(self._cost_function, q_init, constraints=cons,
+                       args=(pose_to_list(desired_pose),), method='SLSQP',
+                       options={'maxiter': 50, 'ftol': 1e-03})
+        js = JointState()
+        js.position = res.x
+        js.name = self.joint_names
+        return GetHumanIKResponse(js)
+
+
+if __name__ == '__main__':
+    rospy.init_node('optimik_srv')
+    ik = OptimIK(sys.argv[1], sys.argv[2])
+    s = rospy.Service(sys.argv[3], GetHumanIK, ik.handle_optim_ik)
+    rospy.spin()

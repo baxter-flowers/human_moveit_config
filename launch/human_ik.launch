@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="human_prefix" default="human" />
-  <arg name="use_tracik" default="True" />
-  <arg name="use_optim_ik" default="False" />
+  <arg name="use_tracik" default="False" />
+  <arg name="use_optimik" default="True" />
 
   <group if="$(arg use_tracik)">
 	  <!-- <node name="ik_shoulder_center" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/base $(arg human_prefix)/shoulder_center /ik/tracik/$(arg human_prefix)/shoulder_center" output="screen"/> -->
@@ -11,17 +11,17 @@
 	  <node name="ik_head_tracik" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/base $(arg human_prefix)/head /ik/tracik/$(arg human_prefix)/head" output="screen"/>
 	  <node name="ik_left_hand_tracik" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_hand /ik/tracik/$(arg human_prefix)/left_hand" output="screen"/>
 	  <node name="ik_right_hand_tracik" pkg="human_moveit_config" type="tracik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_hand /ik/tracik/$(arg human_prefix)/right_hand" output="screen"/>
+	  <node name="ik_server" pkg="human_moveit_config" type="ik_server" args="tracik" output="screen"/>
   </group>
 
-  <group if="$(arg use_optim_ik)">
+  <group if="$(arg use_optimik)">
 	  <!-- <node name="ik_shoulder_center" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/base $(arg human_prefix)/shoulder_center /ik/optim/$(arg human_prefix)/shoulder_center" output="screen"/>
 	  <node name="ik_left_elbow" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_elbow /ik/optim/$(arg human_prefix)/left_elbow" output="screen"/>
 	  <node name="ik_right_elbow" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_elbow /ik/optim/$(arg human_prefix)/right_elbow" output="screen"/> -->
-	  <node name="ik_head_optim" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/base $(arg human_prefix)/head /ik/optim/$(arg human_prefix)/head" output="screen"/>
-	  <node name="ik_left_hand_optim" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_hand /ik/optim/$(arg human_prefix)/left_hand" output="screen"/>
-	  <node name="ik_right_hand_optim" pkg="human_moveit_config" type="optim_ik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_hand /ik/optim/$(arg human_prefix)/right_hand" output="screen"/>
+	  <node name="ik_head_optimik" pkg="human_moveit_config" type="optimik_server" args="$(arg human_prefix)/base $(arg human_prefix)/head /ik/optimik/$(arg human_prefix)/head" output="screen"/>
+	  <node name="ik_left_hand_optimik" pkg="human_moveit_config" type="optimik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/left_hand /ik/optimik/$(arg human_prefix)/left_hand" output="screen"/>
+	  <node name="ik_right_hand_optimik" pkg="human_moveit_config" type="optimik_server" args="$(arg human_prefix)/shoulder_center $(arg human_prefix)/right_hand /ik/optimik/$(arg human_prefix)/right_hand" output="screen"/>
+	  <node name="ik_server" pkg="human_moveit_config" type="ik_server" args="optimik" output="screen"/>
   </group>
-
-  <node name="ik_server" pkg="human_moveit_config" type="ik_server" output="screen"/>
 
 </launch>

@@ -2,12 +2,13 @@
 from human_moveit_config.optimize_ik import IKOptimizer
 from human_moveit_config.srv import GetHumanIK
 import rospy
+import sys
 
 
 def main():
     rospy.init_node('human_ik_srv')
     rospy.sleep(5)
-    opti = IKOptimizer()
+    opti = IKOptimizer(type_ik=sys.argv[1])
     rospy.Service('compute_human_ik', GetHumanIK, opti.handle_compute_ik_divided)
     print "Ready to compute IK"
     rospy.spin()

@@ -44,7 +44,7 @@ class IKOptimizer:
             rospy.wait_for_service('/ik/' + type_ik + '/' + l)
             self.div_ik_srv[l] = rospy.ServiceProxy('/ik/' + type_ik + '/' + l, GetHumanIK)
 
-    def compute_sub_ik(self, group, desired_dict, result, tol=0.1):
+    def compute_sub_ik(self, group, desired_dict, result, seed, tol=0.1):
         # get the desired pose in the correct base frame
         base = self.links[group]
         tr = desired_dict[group]
@@ -83,7 +83,7 @@ class IKOptimizer:
         desired_pose.header.frame_id = base
         # try:
             # call the srv
-        res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol)
+        res = self.div_ik_srv[group](desired_poses=[desired_pose], tolerance=tol, seed=seed)
         joint_state = res.joint_state
         # except Exception, e:
         #     print e
@@ -106,7 +106,7 @@ class IKOptimizer:
         threads = [None] * nb_frames
         results = {}
         for i, frame in enumerate(desired_dict.keys()):
-            threads[i] = Thread(target=self.compute_sub_ik, args=(frame, desired_dict, results, req.tolerance))
+            threads[i] = Thread(target=self.compute_sub_ik, args=(frame, desired_dict, results, req.seed, req.tolerance))
             threads[i].start()
         # join thread results
         for i in range(len(threads)):
