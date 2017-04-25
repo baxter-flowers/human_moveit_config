@@ -202,7 +202,7 @@ class SensorReader(object):
         for s in sensors:
             set_frames.update(self.sensor_frames[s])
             # get the intersection with the calibrated matrices
-            if self.calibrated:
+            if self.calibrated and s in self.calibrated_frames_set.keys():
                 set_frames = set.intersection(set_frames, self.calibrated_frames_set[s])
         # loop through all the possible frames
         for frame in set_frames:

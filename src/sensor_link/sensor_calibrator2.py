@@ -26,10 +26,9 @@ class SensorCalibrator(object):
 
     def calculate_transforms(self, base_transform):
         for skel_pose, dict_pose in self.fk.iteritems():
-            for key, value in dict_pose.iteritems():
+            for key in self.links:
                 # calculate the transformation
-                p = multiply_transform(base_transform, value)
-                p = multiply_transform(self.records[skel_pose][self.human.prefix + '/base'], p)
+                p = multiply_transform(base_transform, dict_pose[key])
                 inv_frame = inverse_transform(self.records[skel_pose][key])
                 p = multiply_transform(inv_frame, p)
                 # add it to the list of transformation
@@ -57,22 +56,25 @@ class SensorCalibrator(object):
                 rot_cost = 1 - np.inner(p[0][1], p[1][1])**2
             return pos_cost + rot_coeff * rot_cost
 
-        def base_rotation_cost(base_rot, coeff=2):
-            q = base_rot
-            # calculate z axis from quaternion
-            z = [2 * (q[0] * q[2] + q[1] * q[3]),
-                 2 * (q[1] * q[2] - q[0] * q[3]),
-                 1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]]
-            # check that the z base axis is normal to the ground
-            cost = coeff * abs(np.dot(z, self.ground_axis) - 1)
-            return cost
+        def base_rotation_cost(base_transform, coeff=100):
+            base_cost = 0
+            for key, value in self.records.iteritems():
+                transform = multiply_transform(value[self.human.prefix + '/base'], base_transform)
+                q = transform[1]
+                # calculate z axis from quaternion
+                z = [2 * (q[0] * q[2] + q[1] * q[3]),
+                     2 * (q[1] * q[2] - q[0] * q[3]),
+                     1 - 2 * q[0] * q[0] - 2 * q[1] * q[1]]
+                # check that the z base axis is parallel to the ground
+            base_cost += coeff * (np.dot(z, self.ground_axis) - 1)**2
+            return base_cost
         # reset the calibration
         self.reset_calibration()
         # create the calibration from the optimized base pose
         base_transform = self.extract_transform(q)
         self.calculate_transforms(base_transform)
         # for all the calibration calculate the difference between the transformations
-        cost = base_rotation_cost(base_transform[1])
+        cost = base_rotation_cost(base_transform)
         for key, transforms in self.calibrations.iteritems():
             cost += distance_cost(transforms)
         self.calibrations[self.human.prefix + '/base'] = [base_transform]
@@ -109,11 +111,8 @@ class SensorCalibrator(object):
                             method='L-BFGS-B')
                             # options={'maxfun': maxiter})
         print res
-
-        print self.calibrations
-
-        # res_calibr = {}
-        # for l in links:
-        #     res_calibr[l] = self.calibrations[self.human.prefix + "/" + l][0]
-        # res_calibr["base"] = self.calibrations[self.human.prefix + "/base"][0]
-        return self.calibrations
+        res_calibr = {}
+        for l in links:
+            res_calibr[l] = self.calibrations[l][0]
+        res_calibr[self.human.prefix + '/base'] = self.calibrations[self.human.prefix + '/base'][0]
+        return res_calibr

@@ -13,7 +13,7 @@ import tf
 class Calibrator(object):
     def __init__(self):
         self.rospack = rospkg.RosPack()
-        self.sensor_reader = SensorReader(False)
+        self.sensor_reader = SensorReader(calibrated=False)
         self.sensor_calibr = SensorCalibrator()
         self.sensor_calibr.human = HumanModel()
         self.tfl = tf.TransformListener()
@@ -22,20 +22,39 @@ class Calibrator(object):
         self.initialize_poses()
 
     def initialize_poses(self):
-        self.skeleton_poses["T"] = self.sensor_calibr.human.get_T_pose()
-        self.skeleton_poses["N"] = self.sensor_calibr.human.get_N_pose()
-        self.skeleton_poses["H"] = self.sensor_calibr.human.get_H_pose()
+        # T pose
+        js = self.sensor_calibr.human.get_initial_state()
+        self.skeleton_poses["T"] = js
+        # N pose
+        js = self.sensor_calibr.human.get_initial_state()
+        js.position[js.name.index("right_shoulder_0")] = 1.57
+        js.position[js.name.index("left_shoulder_0")] = 1.57
+        self.skeleton_poses["N"] = js
+        # # H pose
+        # js = self.sensor_calibr.human.get_initial_state()
+        # js.position[js.name.index("right_shoulder_1")] = 1.57
+        # js.position[js.name.index("left_shoulder_1")] = -1.57
+        # self.skeleton_poses["H"] = js
+        # # V pose
+        # js = self.sensor_calibr.human.get_initial_state()
+        # js.position[js.name.index("right_elbow_0")] = 1.57
+        # js.position[js.name.index("left_elbow_0")] = -1.57
+        # self.skeleton_poses["V"] = js
+        # # V pose
+        # js = self.sensor_calibr.human.get_initial_state()
+        # js.position[js.name.index("right_shoulder_2")] = 1.57
+        # js.position[js.name.index("left_shoulder_2")] = -1.57
+        # js.position[js.name.index("right_elbow_0")] = 1.57
+        # js.position[js.name.index("left_elbow_0")] = -1.57
+        # self.skeleton_poses["W"] = js
 
-    def request_for_position(self, sensor, frames_list, pose_id):
-        # modify the list of visible frames
-        if frames_list is list:
-            self.sensor_reader.sensor_frames[sensor] = frames_list
+    def request_for_position(self, sensor, pose_id):
         while not rospy.is_shutdown():
+            raw_input("User in " + pose_id + " position, press <Enter> when ready...")
             rospy.sleep(5)
             os.system('beep')
-            # raw_input("User in T position, press <Enter> when ready...")
             if self.sensor_reader.update_skeleton(sensor, debug=True):
-                rospy.loginfo("T pose recorded successfully")
+                rospy.loginfo(pose_id + " pose recorded successfully")
                 break
             else:
                 rospy.logerr("Cannot calibrate, skeleton not visible")
@@ -63,6 +82,7 @@ class Calibrator(object):
         return skeletons[sensor]
 
     def create_calibration_matrices(self, sensor, sensor_param, reset_pose=False):
+        rospy.sleep(5)
         # read the config file with the selected frames
         frames_file = self.rospack.get_path("human_moveit_config") + '/config/frames_list.json'
         with open(frames_file) as data_file:
@@ -71,12 +91,21 @@ class Calibrator(object):
         if sensor_param not in data_frames[sensor].keys():
             rospy.logerr('Parameter unknown')
             sys.exit(1)
+        # modify the list of visible frames
         frames_list = data_frames[sensor][sensor_param]
+        if frames_list is not list:
+            if frames_list != "all":
+                frames_list = [frames_list]
+                self.sensor_reader.sensor_frames[sensor] = frames_list
+            else:
+                frames_list = self.sensor_reader.sensor_frames[sensor]
+        else:
+            self.sensor_reader.sensor_frames[sensor] = frames_list
         record_poses = {}
         for key in self.skeleton_poses.keys():
             # record a new pose
             if reset_pose:
-                record_poses[key] = self.request_for_position(sensor, frames_list, key)
+                record_poses[key] = self.request_for_position(sensor, key)
             else:
                 record_poses[key] = self.read_pose_from_file(sensor, key)
         # for recorded skeleton calibrate the transformation matrices

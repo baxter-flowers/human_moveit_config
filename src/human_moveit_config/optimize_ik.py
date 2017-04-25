@@ -17,23 +17,19 @@ class IKOptimizer:
         # set the cost factors (end_effectors, fixed_joints)
         self.cost_factors = [1, 1]
         self.distance_factor = [1, 3]
-        # self.links = [self.prefix + '/shoulder_center',
-        #               self.prefix + '/head',
-        #               self.prefix + '/left_elbow',
-        #               self.prefix + '/left_hand',
-        #               self.prefix + '/right_elbow',
-        #               self.prefix + '/right_hand']
-
-        # self.bases = [self.prefix + '/base',
-        #               self.prefix + '/shoulder_center',
-        #               self.prefix + '/shoulder_center',
-        #               self.prefix + '/left_elbow',
-        #               self.prefix + '/shoulder_center',
-        #               self.prefix + '/right_elbow']
         self.links = {}
-        self.links[self.prefix + '/head'] = self.prefix + '/base'
-        self.links[self.prefix + '/left_hand'] = self.prefix + '/shoulder_center'
-        self.links[self.prefix + '/right_hand'] = self.prefix + '/shoulder_center'
+
+        if type_ik == "tracik":
+            self.links[self.prefix + '/head'] = self.prefix + '/base'
+            self.links[self.prefix + '/left_hand'] = self.prefix + '/shoulder_center'
+            self.links[self.prefix + '/right_hand'] = self.prefix + '/shoulder_center'
+        else:
+            self.links[self.prefix + '/head'] = self.prefix + '/shoulder_center'
+            self.links[self.prefix + '/shoulder_center'] = self.prefix + '/base'
+            self.links[self.prefix + '/left_hand'] = self.prefix + '/left_elbow'
+            self.links[self.prefix + '/left_elbow'] = self.prefix + '/shoulder_center'
+            self.links[self.prefix + '/right_hand'] = self.prefix + '/right_elbow'
+            self.links[self.prefix + '/right_elbow'] = self.prefix + '/shoulder_center'
 
         self.joint_by_links = {}
         for key, value in self.links.iteritems():

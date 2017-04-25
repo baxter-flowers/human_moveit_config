@@ -244,28 +244,6 @@ class HumanModel(object):
         js.position = np.zeros(len(js.position))
         return js
 
-    def get_T_pose(self):
-        js = self.robot_commander.get_current_state().joint_state
-        # put the model in T pose, i.e all joints values at 0
-        js.position = np.zeros(len(js.position))
-        return js
-
-    def get_N_pose(self):
-        js = self.robot_commander.get_current_state().joint_state
-        # put the model in N pose, i.e shoulder_0 at 90
-        js.position = np.zeros(len(js.position))
-        js.position[js.name.index("right_shoulder_0")] = 1.57
-        js.position[js.name.index("left_shoulder_0")] = 1.57
-        return js
-
-    def get_H_pose(self):
-        js = self.robot_commander.get_current_state().joint_state
-        # put the model in H pose, i.e shoulder_1 at 90
-        js.position = np.zeros(len(js.position))
-        js.position[js.name.index("right_shoulder_1")] = 1.57
-        js.position[js.name.index("left_shoulder_1")] = -1.57
-        return js
-
     def jacobian(self, group_name, joint_state, use_quaternion=False, link=None, ref_point=None):
         def compute_jacobian_srv():
             rospy.wait_for_service('compute_jacobian')
