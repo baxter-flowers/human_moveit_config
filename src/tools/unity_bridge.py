@@ -124,10 +124,11 @@ class UnityBridge(object):
         channel_dict['/camera'] = 2
         channel_dict['/model'] = 3
         channel_dict['/risk'] = 4
+        channel_dict['/opt_posture'] = 5
 
         self.corresp_dict['channels'] = channel_dict
 
-    def send_joint_values(self, joint_names, values):
+    def send_joint_values(self, joint_names, values, channel='posture'):
         if type(joint_names) is str:
             joint_names = [joint_names]
         if type(values) in [float, int]:
@@ -141,13 +142,13 @@ class UnityBridge(object):
                 # vect[params[0]] = (params[1] * values[i] + vect[params[0]]) / (np.pi + vect[params[0]])
                 vect[params[0]] += (params[1] * values[i]) / (np.pi + vect[params[0]])
                 # vect[params[0]] += (params[1] * values[i]) / (np.pi)
-            except:
+            except Exception:
                 continue
-        chan = self.corresp_dict['channels']['/posture']
+        chan = self.corresp_dict['channels'][channel]
         self.udp.send_float_vector(chan, vect.tolist())
 
     def send_state(self, joint_state):
-        self.send_joint_values(joint_state.name, joint_state.position)
+        self.send_joint_values(joint_state.name, joint_state.position, '/posture')
 
     def activate_camera(self, cam_id):
         chan = self.corresp_dict['channels']['/camera']
@@ -161,3 +162,6 @@ class UnityBridge(object):
         sent_vect = [risk_dict[f] for f in self.corresp_dict['links']]
         chan = self.corresp_dict['channels']['/risk']
         self.udp.send_float_vector(chan, sent_vect)
+
+    def send_optimal_posture(self, joint_state):
+        self.send_joint_values(joint_state.name, joint_state.position, '/opt_posture')
