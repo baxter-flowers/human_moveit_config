@@ -55,7 +55,7 @@ class OptimIK(object):
         # call the minimize function from scipy
         res = minimize(self._cost_function, q_init, constraints=cons,
                        args=(pose_to_list(desired_pose),), method='SLSQP',
-                       options={'maxiter': 50, 'ftol': 1e-03})
+                       options={'maxiter': 25, 'ftol': 1e-02})
         js = JointState()
         js.position = res.x
         js.name = self.joint_names
