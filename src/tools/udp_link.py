@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import socket
 import struct
+import rospy
 
 
 class UDPLink(object):
@@ -21,7 +22,10 @@ class UDPLink(object):
             packed_data = packer.pack(*sent_vect)
             packed_data += data
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-        sock.sendto(packed_data, (self.ip, self.port))
+        try:
+            sock.sendto(packed_data, (self.ip, self.port))
+        except socket.gaierror:
+            rospy.logwarn("Host not connected")
 
     def send_string(self, channel, string_value):
         self._send_data(channel, string_value, 's')
