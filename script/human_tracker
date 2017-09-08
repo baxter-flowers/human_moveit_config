@@ -65,7 +65,7 @@ class HumanTracker(object):
 
     def publish_skeleton(self):
         # update the skeleton
-        self.sensor.update_skeleton('all')
+        self.sensor.update_skeleton('opt')
         skeleton = self.sensor.skel_data
         if self.prefix + '/base' in skeleton.keys():
             # get the transformation from sensor_frame to human base
@@ -82,7 +82,7 @@ class HumanTracker(object):
                 if key != self.prefix + '/base':
                     # get the pose wrt to human base
                     pose = value[1]
-                    self.tfb.sendTransform(pose[0], pose[1], rospy.Time.now(),
+                    self.tfb.sendTransform(pose[0], np.array(pose[1])/np.linalg.norm(pose[1]), rospy.Time.now(),
                                            'tracker/' + key, 'tracker/' + self.prefix + '/base')
                     obs_dict[key] = value[1]
             # request the IK
