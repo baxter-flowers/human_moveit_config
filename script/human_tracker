@@ -74,7 +74,7 @@ class HumanTracker(object):
             # publish it wrt to the sensor frame
             self.tfb.sendTransform([0, 0, 0], [0, 0, 0, 1],
                                    rospy.Time.now(), 'tracker/' + self.prefix + '/base', self.prefix + '/base')
-            self.tfb.sendTransform(SensorTHuman[0], SensorTHuman[1],
+            self.tfb.sendTransform(SensorTHuman[0], np.array(SensorTHuman[1])/np.linalg.norm(SensorTHuman[1]),
                                    rospy.Time.now(), self.prefix + '/base', frame[0] + '_frame')
             # loop through all the recorded frames
             obs_dict = {}
