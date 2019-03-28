@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import tf
-import transformations
+import tools.transformations
 import rospy
 import numpy as np
 import json
@@ -80,7 +80,7 @@ class SensorReader(object):
             self.calibrated_frames_set[sensor] = set()
             for key, value in dico.iteritems():
                 mat_dict[sensor][key] = value
-                mat_dict[sensor][key + '/inv'] = transformations.inverse_transform(value)
+                mat_dict[sensor][key + '/inv'] = tools.transformations.inverse_transform(value)
                 self.calibrated_frames_set[sensor].add(key)
         return mat_dict
 
@@ -154,9 +154,9 @@ class SensorReader(object):
                                                              time)
                             # multiply each transformation by the calibration matrix
                             if self.calibrated:
-                                dot_prod = transformations.multiply_transform(self.calibration[b_pref][base + '/inv'],
+                                dot_prod = tools.transformations.multiply_transform(self.calibration[b_pref][base + '/inv'],
                                                                               frame)
-                                dot_prod = transformations.multiply_transform(dot_prod,
+                                dot_prod = tools.transformations.multiply_transform(dot_prod,
                                                                               self.calibration[t_pref][target])
                                 self.skel_data[target] = [self.sensors_ref[t_pref], dot_prod]
                             else:
@@ -177,7 +177,7 @@ class SensorReader(object):
                                                          time)
                         # multiply with the calibration
                         if self.calibrated:
-                            dot_prod = transformations.multiply_transform(frame,
+                            dot_prod = tools.transformations.multiply_transform(frame,
                                                                           self.calibration[pref][self.human_prefix + '/base'])
                             self.skel_data[self.human_prefix + '/base'] = [self.sensors_ref[pref], dot_prod]
                         else:

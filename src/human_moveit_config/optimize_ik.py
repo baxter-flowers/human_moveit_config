@@ -2,7 +2,7 @@
 from .human_model import HumanModel
 from human_moveit_config.srv import GetHumanIKResponse
 from human_moveit_config.srv import GetHumanIK
-import transformations
+import tools.transformations
 from threading import Thread
 from threading import Lock
 import rospy
@@ -70,8 +70,8 @@ class IKOptimizer:
                                     fk = self.model.forward_kinematic(js, links=base)
                                     tr_base = fk[base]
                 if base_found:
-                    inv_base = transformations.inverse_transform(tr_base)
-                    desired_pose = transformations.multiply_transform(inv_base, tr)
+                    inv_base = tools.transformations.inverse_transform(tr_base)
+                    desired_pose = tools.transformations.multiply_transform(inv_base, tr)
                 else:
                     return 1
             else:
@@ -79,7 +79,7 @@ class IKOptimizer:
         else:
             return 1
         # transform it back to PoseStamped
-        desired_pose = transformations.list_to_pose(desired_pose)
+        desired_pose = tools.transformations.list_to_pose(desired_pose)
         desired_pose.header.frame_id = base
         # try:
             # call the srv
@@ -96,7 +96,7 @@ class IKOptimizer:
         desired_dict = {}
         for pose in req.desired_poses:
             if pose.header.frame_id in self.links.keys():
-                desired_dict[pose.header.frame_id] = transformations.pose_to_list(pose)
+                desired_dict[pose.header.frame_id] = tools.transformations.pose_to_list(pose)
         nb_frames = len(desired_dict.keys())
         # convert the fixed joint state to dict
         fixed_joints_dict = {}

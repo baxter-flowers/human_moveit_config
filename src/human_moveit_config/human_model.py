@@ -8,7 +8,7 @@ from moveit_msgs.msg import RobotState
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Point
 from std_msgs.msg import Header
-import transformations
+import tools.transformations
 import numpy as np
 from human_moveit_config.srv import GetJacobian
 from human_moveit_config.srv import GetHumanIK
@@ -99,15 +99,15 @@ class HumanModel(object):
         # transform it in a dict of poses
         pose_dict = {}
         if base != 'base':
-            tr_base = transformations.pose_to_list(pose_stamped_list[links.index(base)].pose)
-            inv_base = transformations.inverse_transform(tr_base)
+            tr_base = tools.transformations.pose_to_list(pose_stamped_list[links.index(base)].pose)
+            inv_base = tools.transformations.inverse_transform(tr_base)
             for i in range(len(links)):
                 if links[i] != base:
-                    tr = transformations.pose_to_list(pose_stamped_list[i].pose)
-                    pose_dict[links[i]] = transformations.multiply_transform(inv_base, tr)
+                    tr = tools.transformations.pose_to_list(pose_stamped_list[i].pose)
+                    pose_dict[links[i]] = tools.transformations.multiply_transform(inv_base, tr)
         else:
             for i in range(len(links)):
-                pose_dict[links[i]] = transformations.pose_to_list(pose_stamped_list[i].pose)
+                pose_dict[links[i]] = tools.transformations.pose_to_list(pose_stamped_list[i].pose)
         return pose_dict
 
     def inverse_kinematic(self, desired_poses, fixed_joints={}, tolerance=0.001, group_names='whole_body', seed=None):
@@ -128,7 +128,7 @@ class HumanModel(object):
         # convert the desired poses to PoseStamped
         poses = []
         for key, value in desired_poses.iteritems():
-            pose = transformations.list_to_pose(value)
+            pose = tools.transformations.list_to_pose(value)
             pose.header.frame_id = key
             poses.append(pose)
         # convert the fixed joints to joint state

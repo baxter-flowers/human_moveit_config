@@ -2,7 +2,7 @@
 # from human_moveit_config.human_model import HumanModel
 import numpy as np
 import scipy.optimize as opti
-import transformations
+import tools.transformations
 
 
 class SensorCalibrator(object):
@@ -64,9 +64,9 @@ class SensorCalibrator(object):
         cost = quaternion_cost(0.5)
         # set the base transform
         base_transform = list_calibr[0]
-        inv_base = transformations.inverse_transform(base_transform)
+        inv_base = tools.transformations.inverse_transform(base_transform)
         # get pose of the base
-        base_pose = transformations.multiply_transform(self.recorded_poses[self.human.prefix + '/base'], inv_base)
+        base_pose = tools.transformations.multiply_transform(self.recorded_poses[self.human.prefix + '/base'], inv_base)
         # calculate cost of the base
         cost += (10 * base_cost(base_pose))
         # loop trough all the transforms
@@ -75,8 +75,8 @@ class SensorCalibrator(object):
             # get the fk
             fk = self.fk[key]
             # compute the corresponding transformation from recorded data
-            pose = transformations.multiply_transform(base_transform, self.recorded_poses[key])
-            pose = transformations.multiply_transform(pose, transformations.inverse_transform(list_calibr[i]))
+            pose = tools.transformations.multiply_transform(base_transform, self.recorded_poses[key])
+            pose = tools.transformations.multiply_transform(pose, tools.transformations.inverse_transform(list_calibr[i]))
             pose[1] /= np.linalg.norm(pose[1])
             # compute the cost based on the distance
             cost += distance_cost(fk, pose)
@@ -100,7 +100,7 @@ class SensorCalibrator(object):
             if base_transform == 0:
                 return False
 
-            inv_base = transformations.inverse_transform(base_transform)
+            inv_base = tools.transformations.inverse_transform(base_transform)
             q = inv_base[1]
             # calculate x base axis from quaternion
             x = [1 - 2 * q[1] * q[1] - 2 * q[2] * q[2],
@@ -162,7 +162,7 @@ class SensorCalibrator(object):
         for i in range(len(self.keys)):
             pos = list_transforms[i][0].tolist()
             rot = list_transforms[i][1].tolist()
-            inv_trans = transformations.inverse_transform([pos, rot])
+            inv_trans = tools.transformations.inverse_transform([pos, rot])
             res_calibr[self.keys[i]] = [list(inv_trans[0]), list(inv_trans[1])]
         print res
         return res_calibr
