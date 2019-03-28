@@ -18,7 +18,6 @@ class ModelGenerator(object):
         while not rospy.is_shutdown():
             if self.use_timer:
                 rospy.sleep(5)
-                os.system('beep')
             else:
                 raw_input("User in T position, press <Enter> when ready...")
             if self.sensor.calibrate():
@@ -77,6 +76,8 @@ if __name__ == '__main__':
     rospy.init_node('model_generator')
     generator = ModelGenerator(sys.argv[1] == 'True')
     source_file = sys.argv[2]
+
+    human_lengths = {}
     if source_file != "record":
         with open(source_file) as datafile:
             human_lengths = json.load(datafile)
