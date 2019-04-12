@@ -19,8 +19,11 @@ class SensorReader(object):
         self.calibration = (self.calibration_matrices(rospy.get_param('/human/calibration'))
                             if self.calibrated else {})
         self.sensor_frames = {}
-        self.sensors = ['opt', 'kinect']
-        self.sensors_ref = {'opt': 'optitrack', 'kinect': 'kinect'}
+        #self.sensors = ['opt', 'kinect']
+        self.sensors = ['kinect']
+        #self.sensors_ref = {'opt': 'optitrack', 'kinect': 'kinect'}
+        self.sensors_ref = {'kinect': 'kinect'}
+
 
         self.skeletons = {}
         for s in self.sensors:
@@ -31,13 +34,13 @@ class SensorReader(object):
         self.sensor_frames['kinect'] = [self.human_prefix + '/head', self.human_prefix + '/neck',
                                         self.human_prefix + '/shoulder_center', self.human_prefix + '/spine',
                                         self.human_prefix + '/left_shoulder', self.human_prefix + '/left_elbow',
-                                        self.human_prefix + '/left_wrist', self.human_prefix + '/left_hand',
+                                        self.human_prefix + '/left_wrist',
                                         self.human_prefix + '/right_shoulder', self.human_prefix + '/right_elbow',
-                                        self.human_prefix + '/right_wrist', self.human_prefix + '/right_hand',
+                                        self.human_prefix + '/right_wrist',
                                         self.human_prefix + '/left_hip', self.human_prefix + '/left_knee',
-                                        self.human_prefix + '/left_ankle', self.human_prefix + '/left_foot',
+                                        self.human_prefix + '/left_ankle',
                                         self.human_prefix + '/right_hip', self.human_prefix + '/right_knee',
-                                        self.human_prefix + '/right_ankle', self.human_prefix + '/right_foot']
+                                        self.human_prefix + '/right_ankle']
         self.sensor_frames['opt'] = [self.human_prefix + '/head', self.human_prefix + '/shoulder_center',
                                      self.human_prefix + '/left_elbow', self.human_prefix + '/right_elbow',
                                      # self.human_prefix + '/left_shoulder', self.human_prefix + '/right_shoulder',
@@ -137,7 +140,7 @@ class SensorReader(object):
         # set the lengths on the parameter server
         rospy.set_param('/human/lengths', self.lengths)
 
-    def update_skeleton(self, sensors='all', debug=False):
+    def update_skeleton(self, sensors='all', debug=True):
         def update_frame(target, prefix):
             base = self.human_prefix + '/base'
             # loop through all the prefixes
