@@ -68,7 +68,6 @@ catkin_python_setup()
 # Generate services in the 'srv' folder
 add_service_files(
    FILES
-   GetJacobian.srv
    GetHumanIK.srv
 )
 
@@ -142,14 +141,6 @@ include_directories(
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(reba_optim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-FILE(GLOB SRCFILES_JAC ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.cpp ${PROJECT_SOURCE_DIR}/src/jacobian_server/*.hpp)
-add_executable(jacobian_server ${SRCFILES_JAC})
-
-target_link_libraries(jacobian_server
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
 
 FILE(GLOB SRCFILES_IK ${PROJECT_SOURCE_DIR}/src/kinematics/*.cpp ${PROJECT_SOURCE_DIR}/src/kinematics/*.hpp)
 add_executable(tracik_server ${SRCFILES_IK})
