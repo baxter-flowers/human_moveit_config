@@ -110,7 +110,7 @@ class SensorCalibrator(object):
             epsilon = -0.1
             return np.dot(x, self.robot_axis) < epsilon
 
-        self.recorded_poses = record
+        self.recorded_poses = record   
         # calculate the fk of the human model in T pose
         js = self.human.get_initial_state()
         self.fk = self.human.forward_kinematic(js, links='all')

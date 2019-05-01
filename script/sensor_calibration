@@ -25,7 +25,6 @@ class Calibrator(object):
             self.sensor_reader.sensor_frames[sensor] = frames_list
         while not rospy.is_shutdown():
             rospy.sleep(10)
-            os.system('beep')
             # raw_input("User in T position, press <Enter> when ready...")
             if self.sensor_reader.update_skeleton(sensor, debug=True):
                 rospy.loginfo("T pose recorded successfully")
@@ -41,6 +40,9 @@ class Calibrator(object):
             with open(skeleton_file) as data_file:
                 skeletons = json.load(data_file)
             # overwrite only new value
+            skeletons[sensor] = skel
+        else:
+            skeletons = {}
             skeletons[sensor] = skel
         with open(skeleton_file, 'w') as output_file:
             json.dump(skeletons, output_file, sort_keys=True, indent=4)
@@ -74,7 +76,7 @@ class Calibrator(object):
         dict_calibr = {}
         # get ground axis
         ref = self.sensor_reader.sensors_ref[sensor] + '_frame'
-        base_pose = self.tfl.lookupTransform(ref, 'base', rospy.Time(0))
+        base_pose = self.tfl.lookupTransform(ref, 'world', rospy.Time(0))
         q = base_pose[1]
         z = [2 * (q[0] * q[2] + q[1] * q[3]),
              2 * (q[1] * q[2] - q[0] * q[3]),

@@ -36,6 +36,6 @@ if __name__ == '__main__':
     rospy.init_node('human_calibration')
     rospy.logwarn('Starting recording human calibration')
     generate_model()
-    generate_calibration('kinect')
+    # generate_calibration('kinect')
     generate_calibration('optitrack')
     rospy.logwarn('Calibration finished')

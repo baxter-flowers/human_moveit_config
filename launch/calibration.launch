@@ -1,17 +1,14 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="sensor" default="kinect" />
+    <arg name="sensor" default="opt" />
     <arg name="parameter" default="full" />
-    <arg name="reset_pose" default="False" />
-
-    <rosparam command="load" file="$(find human_moveit_config)/config/tracked_objects.yaml" param="optitrack/objects"/>
-
-    <include file="$(find kinect_skeleton_publisher)/launch/kinect_skeleton_publisher.launch" />
-    <include file="$(find optitrack_publisher)/launch/optitrack_publisher.launch" />
+    <arg name="reset_pose" default="True" />
 
     <include file="$(find human_moveit_config)/launch/demo.launch"/>
 
-    <node pkg="tf" type="static_transform_publisher" name="human_broadcaster" args="0. 0. 0. 0. 0. 0. 1. base human/base 100" />
+    <node pkg="tf" type="static_transform_publisher" name="human_broadcaster" args="0. 0. 0. 0. 0. 0. 1. world human/base 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="optitrack_frame_publisher" args="0. 0. 0. 0. 0. 0. 1. world optitrack_frame 100" />
 
     <node name="sensor_calibration" pkg="human_moveit_config" type="sensor_calibration" output="screen"
     args="$(arg sensor) $(arg parameter) $(arg reset_pose)" required="true"/>

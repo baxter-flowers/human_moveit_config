@@ -10,7 +10,7 @@ from geometry_msgs.msg import Point
 from std_msgs.msg import Header
 import tools.transformations
 import numpy as np
-from human_moveit_config.srv import GetJacobian
+# from human_moveit_config.srv import GetJacobian
 from human_moveit_config.srv import GetHumanIK
 from copy import deepcopy
 import re
@@ -244,37 +244,37 @@ class HumanModel(object):
         js.position = np.zeros(len(js.position))
         return js
 
-    def jacobian(self, group_name, joint_state, use_quaternion=False, link=None, ref_point=None):
-        def compute_jacobian_srv():
-            rospy.wait_for_service('compute_jacobian')
-            try:
-                compute_jac = rospy.ServiceProxy('compute_jacobian', GetJacobian)
-                js = JointState()
-                js.name = self.get_joint_names(group_name)
-                js.position = self.extract_group_joints(group_name, joint_state)
-                p = Point(x=ref_point[0], y=ref_point[1], z=ref_point[2])
-                # call the service
-                res = compute_jac(group_name, link, js, p, use_quaternion)
-                # reorganize the jacobian
-                jac_array = np.array(res.jacobian).reshape((res.nb_rows, res.nb_cols))
-                # reorder the jacobian wrt to the joint state
-                ordered_jac = np.zeros((len(jac_array), len(joint_state.name)))
-                for i, n in enumerate(js.name):
-                    ordered_jac[:, joint_state.name.index(n)] = jac_array[:, i]
-                return ordered_jac
-            except rospy.ServiceException, e:
-                print "Service call failed: %s" % e
-        #  compute the jacobian only for chains
-        # if group_name not in ['right_arm', 'left_arm', 'head', 'right_leg', 'left_leg']:
-        #     rospy.logerr('The Jacobian matrix can only be computed on kinematic chains')
-        #     return []
-        # assign values
-        if link is None:
-            link = self.end_effectors[group_name]
-        if ref_point is None:
-            ref_point = [0, 0, 0]
-        # return the jacobian
-        return compute_jacobian_srv()
+    # def jacobian(self, group_name, joint_state, use_quaternion=False, link=None, ref_point=None):
+    #     def compute_jacobian_srv():
+    #         rospy.wait_for_service('compute_jacobian')
+    #         try:
+    #             compute_jac = rospy.ServiceProxy('compute_jacobian', GetJacobian)
+    #             js = JointState()
+    #             js.name = self.get_joint_names(group_name)
+    #             js.position = self.extract_group_joints(group_name, joint_state)
+    #             p = Point(x=ref_point[0], y=ref_point[1], z=ref_point[2])
+    #             # call the service
+    #             res = compute_jac(group_name, link, js, p, use_quaternion)
+    #             # reorganize the jacobian
+    #             jac_array = np.array(res.jacobian).reshape((res.nb_rows, res.nb_cols))
+    #             # reorder the jacobian wrt to the joint state
+    #             ordered_jac = np.zeros((len(jac_array), len(joint_state.name)))
+    #             for i, n in enumerate(js.name):
+    #                 ordered_jac[:, joint_state.name.index(n)] = jac_array[:, i]
+    #             return ordered_jac
+    #         except rospy.ServiceException, e:
+    #             print "Service call failed: %s" % e
+    #     #  compute the jacobian only for chains
+    #     # if group_name not in ['right_arm', 'left_arm', 'head', 'right_leg', 'left_leg']:
+    #     #     rospy.logerr('The Jacobian matrix can only be computed on kinematic chains')
+    #     #     return []
+    #     # assign values
+    #     if link is None:
+    #         link = self.end_effectors[group_name]
+    #     if ref_point is None:
+    #         ref_point = [0, 0, 0]
+    #     # return the jacobian
+    #     return compute_jacobian_srv()
 
     def nearest_neighbour(self, fk_dict, scale_orient=40):
         def query_database(link, fk):

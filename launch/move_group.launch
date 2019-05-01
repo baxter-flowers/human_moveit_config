@@ -71,13 +71,6 @@
     <param name="planning_scene_monitor/publish_transforms_updates" value="$(arg publish_monitored_planning_scene)" />
   </node>
 
-  <!-- <node name="human_ik_srv" pkg="human_moveit_config" type="human_ik_srv"/> -->
-  <node name="jacobian_server" pkg="human_moveit_config" type="jacobian_server">
-    <!-- Remap to human_description to avoid conflict with Baxter -->
-    <remap from="robot_description" to="human_description" />
-    <remap from="joint_states" to="/human/joint_states" />
-  </node>
-
   <!-- <include ns="move_group" file="$(find human_moveit_config)/launch/human_ik.launch"/> -->
 
 </launch>
