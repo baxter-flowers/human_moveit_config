@@ -1,0 +1,22 @@
+{
+    "foot_length": 0.1, 
+    "forearm_length": 0.27414947398805106, 
+    "hand_length": 0.1, 
+    "head_radius": 0.1, 
+    "hip_offset_height": 0.0811138121075613, 
+    "hip_offset_width": 0.0805535329980428, 
+    "neck_length": 0.20427942294354792, 
+    "neck_radius": 0.04, 
+    "shin_length": 0.4073370972317705, 
+    "shoulder_offset_height": -0.006095268546360111, 
+    "shoulder_offset_width": 0.18117252084463586, 
+    "spine_down_length": 0.07262489563832998, 
+    "spine_down_radius": 0.14117252084463586, 
+    "spine_up_length": 0.2758880618531778, 
+    "spine_up_radius": 0.16117252084463587, 
+    "thigh_length": 0.5644218935164467, 
+    "thigh_radius": 0.05, 
+    "torso_length": 0.10127011497016404, 
+    "torso_radius": 0.18117252084463586, 
+    "upper_arm_length": 0.294151609476041
+}
